@@ -8,7 +8,7 @@ Status
 
 Work In Progress
 
-Licence
+License
 =======
 Copyright (C) 2014 Raphaël Doursenaud <rdoursenaud@free.fr>
 
