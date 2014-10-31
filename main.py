@@ -1,6 +1,7 @@
 import hiqnet
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.image import Image
 
 SI_COMPACT_16_IP = '192.168.1.6'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
@@ -19,11 +20,15 @@ class MainScreen(Screen):
 class SettingsScreen(Screen):
     pass
 
+class Logo(Image):
+    pass
+
 
 class HiQontrolApp(App):
     locate = False
 
     def build(self):
+        self.icon = 'assets/icon.png'
         return HiQontrol()
 
     def init(self):
