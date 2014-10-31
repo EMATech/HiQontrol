@@ -15,7 +15,9 @@
             font_size: 30
         Button:
             text: 'Settings'
-            on_press: root.manager.current = 'settings'
+            on_press:
+                root.manager.transition.direction = 'down'
+                root.manager.current = 'settings'
 
 <SettingsScreen>:
     name: 'settings'
@@ -23,8 +25,10 @@
     BoxLayout:
         Button:
             text: 'Back to main page'
-            on_press: root.manager.current = 'main'
-        Button:
+            on_press:
+                root.manager.transition.direction = 'right'
+                root.manager.current = 'main'
+        ToggleButton:
             text: 'Locate'
             on_press: app.locateToggle()
 
