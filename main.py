@@ -1,8 +1,6 @@
 import hiqnet
 from kivy.app import App
-from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.widget import Widget
 
 SI_COMPACT_16_IP = '192.168.1.6'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
