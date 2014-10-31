@@ -10,8 +10,8 @@ import socketserver
 
 SI_COMPACT_16_IP = '192.168.1.6'
 SI_COMPACT_16_MAC = '00-17-24-82-06-53'
-SI_COMPACT_16_DEVICE_ADDRESS = '1619'  # 0x653
-SI_COMPACT_16_SERIAL = '5369436f6d7061637400000000000000'  # Hex encoded (SiCompact)
+SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
+SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 
 def init_logging():
     """
@@ -38,8 +38,12 @@ def server():
     socketserver.UDPServer.allow_reuse_address = True
     socketserver.TCPServer.allow_reuse_address = True
 
-    udpserver = socketserver.ThreadingUDPServer(('localhost', hiqnet.IP_PORT), hiqnet.UDPHandler)
-    tcpserver = socketserver.ThreadingTCPServer(('localhost', hiqnet.IP_PORT), hiqnet.TCPHandler)
+    udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', hiqnet.IP_PORT), hiqnet.UDPHandler)
+    # FIXME: derive address from device
+    tcpserver = socketserver.ThreadingTCPServer(('192.168.1.2', hiqnet.IP_PORT), hiqnet.TCPHandler)
+
+    # TODO: receive meter messages
+    #meterserver = socketserver.ThreadingUDPServer((192.168.1.2, '3333'), meterHandler)
 
     udpthread = threading.Thread(target=udpserver.serve_forever)
     tcpthread = threading.Thread(target=tcpserver.serve_forever)
@@ -47,9 +51,9 @@ def server():
     try:
         udpthread.start()
         tcpthread.start()
-        logging.info("Servers started")
-        logging.info("UDP:", udpthread.name)
-        logging.info("TCP:", tcpthread.name)
+        logger.info("Servers started")
+        logger.info("UDP: " + udpthread.name)
+        logger.info("TCP: " + tcpthread.name)
     except KeyboardInterrupt:
         udpserver.shutdown()
         tcpserver.shutdown()
@@ -63,15 +67,23 @@ def hello(source_device, destination_device):
     message.DiscoInfo(device=source_device)
     # TODO: write a send method that will infer the INFO flag and choose UDP or TCP accordingly
     c.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    c.udpsock.sendto(bytes(message), ('<broadcast>', hiqnet.IP_PORT))
+    c.sendto(message, '<broadcast>')
     logger.info("Sent DiscoInfo")
+
+    #message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+    #message.LocateOnSI_COMPACT_16_SERIAL)
+    #c.sendto(message, SI_COMPACT_16_IP)
+    #logger.info("Sent Locate ON")
+
+    #message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
     #message.Hello(source_device)
-    #c.udpsock.sendto(bytes(message), (SI_COMPACT_16_IP, hiqnet.IP_PORT))
+    #c.sendto(message, SI_COMPACT_16_IP)
     #logger.info("Sent Hello")
 
 if __name__ == '__main__':
     logger = init_logging()
     logger.info("RUN")
+    server()
     my_device = hiqnet.DeviceManager()
     logger.debug(my_device.class_name)
     logger.debug(my_device.name_string)
@@ -82,5 +94,3 @@ if __name__ == '__main__':
     logger.debug(my_device.subnet_mask)
     logger.debug(my_device.gateway_address)
     hello(my_device, SI_COMPACT_16_DEVICE_ADDRESS)
-
-

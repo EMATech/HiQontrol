@@ -282,7 +282,7 @@ class HiQnetMessage:
     def recall(self):
         self.message_id = MSG_RECALL
 
-    def locate(self, time):
+    def Locate(self, time, serial_number):
         """
         :param time: time the leds should flash in ms
                      0x0000 turns off locate led(s)
@@ -290,7 +290,15 @@ class HiQnetMessage:
         :return: void
         """
         self.message_id = MSG_LOCATE
-        self.payload = time
+        serial_number_len = struct.pack('!H', len(serial_number))
+        self.payload = time + serial_number_len + serial_number
+
+    def LocateOn(self, serial_number):
+        self.Locate(b'\xff\xff', serial_number)
+
+    def LocateOff(self,serial_number):
+        self.Locate(b'\x00\x00', serial_number)
+
 
     def _build_optional_headers(self):
         # Optional error header
@@ -336,9 +344,16 @@ class Connection:
     udpsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def __init__(self):
-        self.udpsock.bind(('', IP_PORT))
-        self.tcpsock.bind(('', IP_PORT))
+    def sendto(self, message, destination):
+        if struct.unpack('!H', message.flags)[0] & struct.unpack('!H', FLAG_GUAR)[0]:
+            # Send TCP message if the Guaranteed flag is set
+            self.tcpsock.connect((destination, IP_PORT))
+            self.tcpsock.sendall(bytes(message))
+        else:
+            if destination == '<broadcast>':
+                # We need to set some socket options for broadcasting
+                self.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self.udpsock.sendto(bytes(message), (destination, IP_PORT))
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -349,9 +364,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         data = self.request.recv(1024).strip()
-        print(data)
+        print("Received TCP: ")
+        print(binascii.hexlify(data))
 
         # TODO: Process more :)
+
 
 class UDPHandler(socketserver.BaseRequestHandler):
     """
@@ -361,7 +378,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0].strip()
         socket = self.request[1]
-        print(data)
+        print("Received UDP: ")
+        print(binascii.hexlify(data))
 
         # TODO: Process some more :)
-
