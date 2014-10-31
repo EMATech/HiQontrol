@@ -129,12 +129,20 @@ class DeviceManager(VirtualDevice):
         self.dhcp = dhcp
         if gateway_address == '0.0.0.0':
             gw = netifaces.gateways()
-            gateway_address = gw['default'][netifaces.AF_INET][0]
-            iface = gw['default'][netifaces.AF_INET][1]
+            try:
+                gateway_address = gw['default'][netifaces.AF_INET][0]
+                iface = gw['default'][netifaces.AF_INET][1]
+            except KeyError:
+                # This does not work on android. It's OK.
+                pass
         self.gateway_address = gateway_address
         if iface:
             """Get infos from the interface"""
             addrs = netifaces.ifaddresses(iface)
+        else:
+            # Let's assume that the second network device is the one we want.
+            # The first being the local loopback
+            addrs = netifaces.ifaddresses(netifaces.interfaces()[1])
             ip_address = addrs[netifaces.AF_INET][0]['addr']
             subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
             mac_address = addrs[netifaces.AF_LINK][0]['addr']
