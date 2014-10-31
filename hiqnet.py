@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = 'Raphaël Doursenaud'
 
 import itertools
@@ -5,7 +7,11 @@ import struct
 import os
 import netifaces
 import socket
-import socketserver
+try:
+    import socketserver
+except ImportError:
+    import SocketServer as socketserver
+
 import binascii
 
 # TODO: add configuration for MY_DEVICE* parameters
@@ -165,6 +171,9 @@ class FQHiQnetAddress:
     def __bytes__(self):
         return struct.pack('!H', self.device_address) + self.vd_address + self.object_address
 
+    def __str__(self):
+        return self.__bytes__()
+
 
 class HiQnetMessage:
     # Placeholder, will be filled later
@@ -225,7 +234,7 @@ class HiQnetMessage:
     and is used to stop broadcast loops. This field should generally be defaulted to
     0x05.
     """
-    new_sequence_number = itertools.count().__next__()
+    new_sequence_number = itertools.count()
     sequence_number = b'\x00\x00'  # 2 bytes
     """
     The Sequence number is used to uniquely identify each HiQnet message leaving a
@@ -242,7 +251,7 @@ class HiQnetMessage:
     def __init__(self, source=FQHiQnetAddress(), destination=FQHiQnetAddress()):
         self.source_address = source
         self.destination_address = destination
-        self.sequence_number = struct.pack('!H', self.new_sequence_number)
+        self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
 
     def DiscoInfo(self, device=DeviceManager()):
         self.message_id = MSG_DISCOINFO
@@ -335,6 +344,9 @@ class HiQnetMessage:
     def __bytes__(self):
         self._build_header()
         return self.header + self.payload
+
+    def __str__(self):
+        return self.__bytes__()
 
 # TODO: Event logs
 # TODO: Session
