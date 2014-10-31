@@ -1,0 +1,30 @@
+#:kivy 1.0.9
+
+<HiQontrol>:
+    MainScreen:
+    SettingsScreen:
+
+<MainScreen>:
+    name: 'main'
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        Label:
+            text: 'HiQontrol'
+            font_size: 30
+        Button:
+            text: 'Settings'
+            on_press: root.manager.current = 'settings'
+
+<SettingsScreen>:
+    name: 'settings'
+
+    BoxLayout:
+        Button:
+            text: 'Back to main page'
+            on_press: root.manager.current = 'main'
+        Button:
+            text: 'Locate'
+            on_press: app.locateToggle()
+
