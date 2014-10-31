@@ -1,8 +1,12 @@
 #:kivy 1.0.9
 
+#:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+#:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+
 <HiQontrol>:
     MainScreen:
     SettingsScreen:
+    MixScreenProto:
 
 <MainScreen>:
     name: 'main'
@@ -10,24 +14,177 @@
     BoxLayout:
         orientation: 'vertical'
 
+        ActionBar:
+            size_hint_y: None
+
         Logo:
             source: 'assets/icon.png'
+
+        Button:
+            text: 'Mix'
+            on_press:
+                root.manager.transition = FallOutTransition()
+                root.manager.current = 'mix'
+
+        ToggleButton:
+            text: 'Locate'
+            on_press: app.locateToggle()
+
         Button:
             text: 'Settings'
             on_press:
-                root.manager.transition.direction = 'down'
+                root.manager.transition = FallOutTransition()
                 root.manager.current = 'settings'
+
+<MixScreenProto>
+    name: 'mix'
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        ActionBar:
+            size_hint_y: None
+
+            ActionView:
+
+                ActionPrevious:
+                    app_icon: 'assets/icon.png'
+                    title: 'Mix'
+                    on_release:
+                        root.manager.transition = RiseInTransition()
+                        root.manager.current = 'main'
+
+
+        GridLayout:
+            cols: 9
+
+            Label:
+                text: '1'
+                size_hint_y: None
+
+            Label:
+                text: '2'
+                size_hint_y: None
+
+            Label:
+                text: '3'
+                size_hint_y: None
+
+            Label:
+                text: '4'
+                size_hint_y: None
+
+            Label:
+                text: '5'
+                size_hint_y: None
+
+            Label:
+                text: '6'
+                size_hint_y: None
+
+            Label:
+                text: '7'
+                size_hint_y: None
+
+            Label:
+                text: '8'
+                size_hint_y: None
+
+            Label:
+                text: 'L&R'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            ToggleButton:
+                text: 'ON'
+                size_hint_y: None
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
+
+            Slider:
+                orientation: 'vertical'
 
 <SettingsScreen>:
     name: 'settings'
 
     BoxLayout:
-        Button:
-            text: 'Back to main page'
-            on_press:
-                root.manager.transition.direction = 'right'
-                root.manager.current = 'main'
-        ToggleButton:
-            text: 'Locate'
-            on_press: app.locateToggle()
+        orientation: 'vertical'
 
+        ActionBar:
+            size_hint_y: None
+
+            ActionView:
+
+                ActionPrevious:
+                    app_icon: 'assets/icon.png'
+                    title: 'Mix'
+                    on_release:
+                        root.manager.transition = RiseInTransition()
+                        root.manager.current = 'main'
+
+        GridLayout:
+            cols: 2
+
+            Label:
+                text: 'IP Address'
+
+            Label:
+                text: app.getIPAddress()
+
+            Label:
+                text: 'HiQnet Address'
+
+            Label:
+                text: app.getHiQnetAddress()

@@ -9,6 +9,7 @@ SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x0
 
 __version__ = '0.0.1'
 
+
 class HiQontrol(ScreenManager):
     pass
 
@@ -20,16 +21,20 @@ class MainScreen(Screen):
 class SettingsScreen(Screen):
     pass
 
+
+class MixScreenProto(Screen):
+    pass
+
+
 class Logo(Image):
     pass
 
 
-class HiQontrolApp(App):
+class Control():
     locate = False
 
-    def build(self):
-        self.icon = 'assets/icon.png'
-        return HiQontrol()
+    def __init__(self):
+        pass
 
     def init(self):
         source_device = hiqnet.DeviceManager()
@@ -49,6 +54,25 @@ class HiQontrolApp(App):
             self.locate = False
         c.sendto(message, SI_COMPACT_16_IP)
 
+
+class HiQontrolApp(App):
+    control = Control()
+
+    def build(self):
+        self.title = 'HiQontrol'
+        self.icon = 'assets/icon.png'
+        return HiQontrol()
+
+    def locateToggle(self):
+        self.control.locateToggle()
+
+    def getHiQnetAddress(self):
+        # FIXME: placeholder
+        return '1629'
+
+    def getIPAddress(self):
+        # FIXME: placeholder
+        return '192.168.1.6'
 
 if __name__ == '__main__':
     HiQontrolApp().run()
