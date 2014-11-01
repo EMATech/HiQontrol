@@ -3,9 +3,15 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.image import Image
 
+# FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.6'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
+
+# TODO: add configuration for MY_DEVICE* parameters
+MY_DEVICE_NAME = 'HiQontrol'
+# FIXME: this should be assigned automatically
+MY_DEVICE_ADDRESS = 2376
 
 __version__ = '0.0.2'
 
@@ -15,10 +21,6 @@ class HiQontrol(ScreenManager):
 
 
 class HomeScreen(Screen):
-    pass
-
-
-class SettingsScreen(Screen):
     pass
 
 
@@ -33,7 +35,7 @@ class Control():
         pass
 
     def init(self):
-        source_device = hiqnet.DeviceManager()
+        source_device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
         c = hiqnet.Connection()
         source_address = hiqnet.FQHiQnetAddress(device_address=source_device.hiqnet_address)
         destination_address = hiqnet.FQHiQnetAddress(SI_COMPACT_16_DEVICE_ADDRESS)

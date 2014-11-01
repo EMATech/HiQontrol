@@ -14,10 +14,6 @@ except ImportError:
 
 import binascii
 
-# TODO: add configuration for MY_DEVICE* parameters
-MY_DEVICE_ID = 2376
-MY_DEVICE_NAME = 'HiQontrol'
-
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
 PROTOCOL_VERSION = b'\x02'
@@ -99,58 +95,6 @@ class Attribute:
         raise ValueError
 
 
-class VirtualDevice:
-    class_name = ''  # STATIC
-    name_string = ''  # Instance+Dynamic
-
-
-class DeviceManager(VirtualDevice):
-    def __init__(self,
-                 class_name=MY_DEVICE_NAME,
-                 name_string=MY_DEVICE_NAME,
-                 flags=DEFAULT_FLAG_MASK,
-                 serial_number=MY_DEVICE_NAME,
-                 software_version='V0.1',
-                 hiqnet_address=MY_DEVICE_ID,
-                 mac_address=None,
-                 dhcp=True,
-                 ip_address=None,
-                 subnet_mask=None,
-                 gateway_address='0.0.0.0'
-                 ):
-        iface = None
-        self.class_name = class_name
-        self.name_string = name_string
-        self.flags = flags
-        self.serial_number = serial_number
-        self.software_version = software_version
-        # TODO: Move networking infos in a separate object?
-        self.hiqnet_address = hiqnet_address
-        self.dhcp = dhcp
-        if gateway_address == '0.0.0.0':
-            gw = netifaces.gateways()
-            try:
-                gateway_address = gw['default'][netifaces.AF_INET][0]
-                iface = gw['default'][netifaces.AF_INET][1]
-            except KeyError:
-                # This does not work on android. It's OK.
-                pass
-        self.gateway_address = gateway_address
-        if iface:
-            """Get infos from the interface"""
-            addrs = netifaces.ifaddresses(iface)
-        else:
-            # Let's assume that the second network device is the one we want.
-            # The first being the local loopback
-            addrs = netifaces.ifaddresses(netifaces.interfaces()[1])
-            ip_address = addrs[netifaces.AF_INET][0]['addr']
-            subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
-            mac_address = addrs[netifaces.AF_LINK][0]['addr']
-        self.ip_address = ip_address
-        self.subnet_mask = subnet_mask
-        self.mac_address = mac_address
-
-
 class Parameter:
     data_type = None  # STATIC FIXME: needs doc
     name_string = ''  # Instance+Dynamic
@@ -163,6 +107,93 @@ class Parameter:
         0 = Non-Sensor
         1 = Sensor
     """
+
+
+class NetworkInfo:
+    """
+    IPv4 Network informations
+    """
+    mac_address = None
+    dhcp = True
+    ip_address = None
+    subnet_mask = None
+    gateway = None
+
+    def __init__(self,
+                 mac_address,
+                 dhcp,
+                 ip_address,
+                 subnet_mask,
+                 gateway_address='0.0.0.0'):
+        self.mac_address = mac_address
+        self.dhcp = dhcp
+        self.gateway_address = gateway_address
+        self.ip_address = ip_address
+        self.subnet_mask = subnet_mask
+
+    @classmethod
+    def autodetect(cls):
+        """
+        Get infos from the interface
+        we assume that the second network device is the one we want.
+        The first being the local loopback.
+        """
+        iface = netifaces.interfaces()[1]
+        addrs = netifaces.ifaddresses(iface)
+        mac_address = addrs[netifaces.AF_LINK][0]['addr']
+        ip_address = addrs[netifaces.AF_INET][0]['addr']
+        subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
+        try:
+            gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
+        except KeyError:
+            # This does not work on android. It's OK.
+            gateway_address = '0.0.0.0'
+            pass
+        # Seems impossible to know. Let's say it is.
+        dhcp = True
+        return cls(mac_address, dhcp, ip_address, subnet_mask, gateway_address)
+
+
+class VirtualDevice:
+    """
+    Describes a HiQnet virtual device
+
+    This is the basic container object type
+    """
+    class_name = None  # STATIC
+    name_string = None  # Instance+Dynamic
+
+
+class DeviceManager(VirtualDevice):
+    flags = DEFAULT_FLAG_MASK
+    serial_number = None
+    software_version = None
+    """
+    Describes a HiQnet device manager
+
+    Each device has one and this is always the first virtual device
+    """
+    def __init__(self,
+                 name_string,
+                 class_name=None,
+                 flags=DEFAULT_FLAG_MASK,
+                 serial_number=None,
+                 software_version=None):
+        """
+        class_name:
+            The device's registered hiqnet type.
+        name_string
+            The device name. This can be changed by the user
+        """
+        if not class_name:
+            class_name = name_string
+        self.class_name = class_name
+        self.name_string = name_string
+        self.flags = flags
+        if not serial_number:
+            serial_number = name_string
+        self.serial_number = serial_number
+        self.software_version = software_version
 
 
 class FQHiQnetAddress:
@@ -261,7 +292,7 @@ class HiQnetMessage:
         self.destination_address = destination
         self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
 
-    def DiscoInfo(self, device=DeviceManager()):
+    def DiscoInfo(self, device):
         self.message_id = MSG_DISCOINFO
         # Payload
         device_address = struct.pack('!H', self.source_address.device_address)
@@ -358,6 +389,19 @@ class HiQnetMessage:
 
 # TODO: Event logs
 # TODO: Session
+
+
+class Device:
+    """
+    Describes a device or node
+    """
+    hiqnet_address = None
+    network_info = NetworkInfo.autodetect()
+    device_manager = None
+
+    def __init__(self, name, hiqnet_address):
+        self.device_manager = DeviceManager(name)
+        self.hiqnet_address = hiqnet_address
 
 
 class Connection:

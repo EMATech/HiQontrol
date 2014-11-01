@@ -13,6 +13,11 @@ SI_COMPACT_16_MAC = '00-17-24-82-06-53'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 
+# TODO: add configuration for MY_DEVICE* parameters
+MY_DEVICE_NAME = 'HiQontrolCLI'
+# FIXME: this should be assigned automatically
+MY_DEVICE_ADDRESS = 2376
+
 def init_logging():
     """
     Initialize logging
@@ -84,11 +89,7 @@ if __name__ == '__main__':
     logger = init_logging()
     logger.info("RUN")
     server()
-    my_device = hiqnet.DeviceManager()
-    logger.debug(my_device.class_name)
-    logger.debug(my_device.name_string)
-    logger.debug(my_device.serial_number)
-    logger.debug(my_device.software_version)
+    my_device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
     logger.debug(my_device.mac_address)
     logger.debug(my_device.ip_address)
     logger.debug(my_device.subnet_mask)
