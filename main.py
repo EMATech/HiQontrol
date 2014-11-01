@@ -14,7 +14,7 @@ class HiQontrol(ScreenManager):
     pass
 
 
-class MainScreen(Screen):
+class HomeScreen(Screen):
     pass
 
 
@@ -23,10 +23,6 @@ class SettingsScreen(Screen):
 
 
 class MixScreenProto(Screen):
-    pass
-
-
-class Logo(Image):
     pass
 
 

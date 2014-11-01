@@ -4,37 +4,155 @@
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
 
 <HiQontrol>:
-    MainScreen:
+    HomeScreen:
     SettingsScreen:
     MixScreenProto:
 
-<MainScreen>:
-    name: 'main'
+<HomeScreen>:
+    id: home
+    infos: infos.__self__
+    add: add.__self__
+    rem: rem.__self__
+    name: 'home'
 
-    BoxLayout:
-        orientation: 'vertical'
+    # TODO: Add an appealing background. Perhaps similar to the splashscreen.
 
-        ActionBar:
-            size_hint_y: None
+    Popup:
+        id: infos
+        title: "Device informations"
+        size_hint: .75, .75
+        on_parent:
+            if self.parent == home: self.parent.remove_widget(self)
 
-        Logo:
-            source: 'assets/icon.png'
+        BoxLayout:
+            orientation: 'vertical'
 
-        Button:
-            text: 'Mix'
-            on_press:
-                root.manager.transition = FallOutTransition()
-                root.manager.current = 'mix'
+            GridLayout:
+                cols: 2
 
-        ToggleButton:
-            text: 'Locate'
-            on_press: app.locateToggle()
+                Label:
+                    size_hint_x: .5
+                    text: "IP Address:"
 
-        Button:
-            text: 'Settings'
-            on_press:
-                root.manager.transition = FallOutTransition()
-                root.manager.current = 'settings'
+                TextInput:
+                    text: app.getIPAddress()
+                    disabled: True
+
+                Label:
+                    size_hint_x: .5
+                    text: "HiQnet Address:"
+
+                TextInput:
+                    text: app.getHiQnetAddress()
+                    disabled: True
+
+            Button:
+                text: "OK"
+                size_hint_y: None
+                on_press: infos.dismiss()
+
+    Popup:
+        id: add
+        title: "Add a device"
+        size_hint: .75, .75
+        on_parent:
+            if self.parent == home: self.parent.remove_widget(self)
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            GridLayout:
+                cols: 2
+
+                Label:
+                    text: "Model:"
+                    size_hint_x: .5
+                # TODO: maybe replace by a dropdown list
+                TextInput:
+                    text: "Si Compact 16"
+                    disabled: True
+
+                Label:
+                    text: "HiQnetAddress:"
+                    size_hint_x: .5
+                TextInput:
+                    # TODO: number input only
+
+            Button:
+                text: "Add"
+                size_hint_y: None
+                on_press:
+                    add.dismiss()
+                    # TODO: do something useful
+
+    Popup:
+        size_hint: .75, .75
+        id: rem
+        title: "Remove a device"
+        on_parent:
+            if self.parent == home: self.parent.remove_widget(self)
+
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: "Are you sure?"
+
+            BoxLayout:
+                size_hint_y: None
+                Button:
+                    text: "No"
+                    on_press: rem.dismiss()
+
+                Button:
+                    text: "Yes"
+                    on_press:
+                        rem.dismiss()
+                        # TODO: do something useful
+
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'center'
+        padding: 100
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            Image:
+                id: home_logo
+                size_hint_y: None
+                size: 64,64
+                source: 'assets/icon.png'
+
+            GridLayout:
+                id: device_list
+                # TODO: maybe replace by a ListView?
+                cols: 3
+
+                Button:
+                    text: "Si Compact 16"
+                    on_press:
+                        root.manager.transition = FallOutTransition()
+                        root.manager.current = 'mix'
+
+                ToggleButton:
+                    size_hint_x: None
+                    text: "L"  # TODO: replace by a nice icon
+                    on_press: app.locateToggle()
+
+                Button:
+                    size_hint_x: None
+                    text: "i"  # TODO: replace by a nice icon
+                    on_press: root.infos.open()
+
+            BoxLayout:
+                size_hint_y: None
+                Button:
+                    text: "-"  # TODO: replace by a nice icon
+                    on_press: root.rem.open()
+                Button:
+                    text: "+"  # TODO: replace by a nice icon
+                    on_press: root.add.open()
+
 
 <MixScreenProto>
     name: 'mix'
@@ -52,82 +170,82 @@
                     title: 'Mix'
                     on_release:
                         root.manager.transition = RiseInTransition()
-                        root.manager.current = 'main'
+                        root.manager.current = 'home'
 
-
+        # TODO: make this layout generative according to the console's description file
         GridLayout:
             cols: 9
 
-            Label:
-                text: '1'
+            TextInput:
+                text: "1"
                 size_hint_y: None
 
-            Label:
-                text: '2'
+            TextInput:
+                text: "2"
                 size_hint_y: None
 
-            Label:
-                text: '3'
+            TextInput:
+                text: "3"
                 size_hint_y: None
 
-            Label:
-                text: '4'
+            TextInput:
+                text: "4"
                 size_hint_y: None
 
-            Label:
-                text: '5'
+            TextInput:
+                text: "5"
                 size_hint_y: None
 
-            Label:
-                text: '6'
+            TextInput:
+                text: "6"
                 size_hint_y: None
 
-            Label:
-                text: '7'
+            TextInput:
+                text: "7"
                 size_hint_y: None
 
-            Label:
-                text: '8'
+            TextInput:
+                text: "8"
                 size_hint_y: None
 
-            Label:
-                text: 'L&R'
-                size_hint_y: None
-
-            ToggleButton:
-                text: 'ON'
+            TextInput:
+                text: "L & R"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
                 size_hint_y: None
 
             ToggleButton:
-                text: 'ON'
+                text: "ON"
+                size_hint_y: None
+
+            ToggleButton:
+                text: "ON"
                 size_hint_y: None
 
             Slider:
@@ -144,8 +262,6 @@
 
             Slider:
                 orientation: 'vertical'
-            Slider:
-                orientation: 'vertical'
 
             Slider:
                 orientation: 'vertical'
@@ -156,35 +272,41 @@
             Slider:
                 orientation: 'vertical'
 
-<SettingsScreen>:
-    name: 'settings'
-
-    BoxLayout:
-        orientation: 'vertical'
-
-        ActionBar:
-            size_hint_y: None
-
-            ActionView:
-
-                ActionPrevious:
-                    app_icon: 'assets/icon.png'
-                    title: 'Mix'
-                    on_release:
-                        root.manager.transition = RiseInTransition()
-                        root.manager.current = 'main'
-
-        GridLayout:
-            cols: 2
+            Slider:
+                orientation: 'vertical'
 
             Label:
-                text: 'IP Address'
+                text: "1"
+                size_hint_y: None
 
             Label:
-                text: app.getIPAddress()
+                text: "2"
+                size_hint_y: None
 
             Label:
-                text: 'HiQnet Address'
+                text: "3"
+                size_hint_y: None
 
             Label:
-                text: app.getHiQnetAddress()
+                text: "4"
+                size_hint_y: None
+
+            Label:
+                text: "5"
+                size_hint_y: None
+
+            Label:
+                text: "6"
+                size_hint_y: None
+
+            Label:
+                text: "7"
+                size_hint_y: None
+
+            Label:
+                text: "8"
+                size_hint_y: None
+
+            Label:
+                text: "L & R"
+                size_hint_y: None
