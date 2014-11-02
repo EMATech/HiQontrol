@@ -5,6 +5,7 @@ from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.textinput import TextInput
 
 # FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.6'
@@ -23,6 +24,15 @@ class HomeScreen(Screen):
 
 class MixScreenProto(Screen):
     pass
+
+
+class HiQNetAddressInput(TextInput):
+    # FIXME: don't allow value of 0 or over 65535
+    pat = re.compile('[^0-9]]')
+    def insert_text(self, substring, from_undo=False):
+        pat = self.pat
+        s = re.sub(pat, '', substring)
+        return super(HiQNetAddressInput, self).insert_text(s, from_undo=from_undo)
 
 
 class Control():
