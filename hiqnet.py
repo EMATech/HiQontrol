@@ -301,13 +301,13 @@ class HiQnetMessage:
         device_address = struct.pack('!H', self.source_address.device_address)
         cost = b'\x01'
         serial_number_len = struct.pack('!H', 16)
-        serial_number = struct.pack('!16s', bytes(device.serial_number, 'ascii'))  # May use utf-16-be == UCS-2
+        serial_number = struct.pack('!16s', bytes(device.manager.serial_number.decode('ascii')))  # May use utf-16-be == UCS-2
         max_message_size = struct.pack('!I', 65535)  # FIXME: should really be the server's buffer size
         keep_alive_period = struct.pack('!H', DEFAULT_KEEPALIVE)
         network_id = ETHERNET_NETWORK_ID
         mac_address = binascii.unhexlify(device.network_info.mac_address.replace(':', ''))
         dhcp = struct.pack('!B', device.network_info.dhcp)
-        ip_address = socket.inet_aton(device.network_infoip_address)
+        ip_address = socket.inet_aton(device.network_info.ip_address)
         subnet_mask = socket.inet_aton(device.network_info.subnet_mask)
         gateway_address = socket.inet_aton(device.network_info.gateway_address)
         self.payload = device_address + cost + serial_number_len + serial_number \
@@ -409,10 +409,10 @@ class Device:
     """
     hiqnet_address = None
     network_info = NetworkInfo.autodetect()
-    device_manager = None
+    manager = None
 
     def __init__(self, name, hiqnet_address):
-        self.device_manager = DeviceManager(name)
+        self.manager = DeviceManager(name)
         self.hiqnet_address = hiqnet_address
 
     def negotiateAddress(self):
