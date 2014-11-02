@@ -13,8 +13,6 @@ MY_DEVICE_NAME = 'HiQontrol'
 # FIXME: this should be assigned automatically
 MY_DEVICE_ADDRESS = 2376
 
-__version__ = '0.0.2'
-
 
 class HiQontrol(ScreenManager):
     pass
@@ -53,6 +51,7 @@ class Control():
 
 
 class HiQontrolApp(App):
+    __version__ = '0.0.2'
     device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
     control = Control(device)
 
