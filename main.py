@@ -62,6 +62,18 @@ class HiQontrolApp(App):
         self.device.startServer()
         self.control = Control(self.device)
 
+    def on_pause(self):
+        """
+        Enable pause mode
+
+        Note: stopping the server here to restart it on_resume seems the obvious thing to do but it does not work.
+              Don't do it! All you'll get is an address already in use error.
+        """
+        return True
+
+    def on_resume(self):
+        pass
+
     def on_stop(self):
         self.device.stopServer()
 
