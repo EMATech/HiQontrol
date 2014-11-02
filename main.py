@@ -73,6 +73,7 @@ class HiQontrolApp(App):
         device = hiqnet.Device(device_name, device_address)
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)
+    store_needs_update = False
     control = None
 
     def on_start(self):
@@ -85,13 +86,12 @@ class HiQontrolApp(App):
     def on_pause(self):
         """
         Enable pause mode
-
-        Note: stopping the server here to restart it on_resume seems the obvious thing to do but it does not work.
-              Don't do it! All you'll get is an address already in use error.
         """
+        self.device.stopServer()
         return True
 
     def on_resume(self):
+        self.device.startServer()
         pass
 
     def on_stop(self):
@@ -102,12 +102,21 @@ class HiQontrolApp(App):
         self.icon = 'assets/icon.png'
         return HiQontrol()
 
-    def storeUpdate(self):
-        Logger.info("Store updated, reloading device")
-        self.device.stopServer()
-        self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
-                                    self.datastore.get('device_address')['value'])
-        self.control = self.control = Control(self.device)
+    def storeNeedsUpdate(self):
+        self.store_needs_update = True
+
+    def storeUpdate(self, name, address):
+        if self.store_needs_update:
+            Logger.info(APPNAME + ": Updating store")
+            self.datastore.put('device_name', value=name)
+            self.datastore.put('device_address', value=int(address))
+            Logger.info(APPNAME + ": Store updated, reloading device")
+            self.device.stopServer()
+            self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
+                                        self.datastore.get('device_address')['value'])
+            self.device.startServer()
+            self.control = self.control = Control(self.device)
+            self.store_needs_update = False
 
     def locateToggle(self):
         self.control.locateToggle()

@@ -49,6 +49,10 @@
                     id: local_name
                     text: app.getLocalName()
                     multiline: False
+                    focus: True
+                    on_text: app.storeNeedsUpdate()
+                    # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
+                    #on_text_validate: local_hiqnet_address.focus = True
 
                 Label:
                     size_hint_x: .5
@@ -58,7 +62,8 @@
                     # FIXME: only allow int values 1-65535
                     id: local_hiqnet_address
                     text: app.getLocalHiQNetAddress()
-                    multiline: False
+                    focus: False
+                    on_text: app.storeNeedsUpdate()
 
                 Label:
                     size_hint_x: .5
@@ -91,6 +96,7 @@
                 TextInput:
                     text: app.getLocalSubnetMask()
                     disabled: True
+
                 Label:
                     size_hint_x: .5
                     text: "Gateway:"
@@ -105,9 +111,7 @@
                 on_press:
                     # Save TextInput values on pressing OK
                     # FIXME: put_async is broken upstream but would be far better
-                    app.datastore.put('device_name', value=local_name.text)
-                    app.datastore.put('device_address', value=int(local_hiqnet_address.text))
-                    app.storeUpdate()
+                    app.storeUpdate(local_name.text, local_hiqnet_address.text)
                     about.dismiss()
 
     Popup:

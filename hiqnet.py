@@ -475,9 +475,11 @@ class Device:
         logging.info("HiQnet: Terminating servers:")
         if self.udpserver:
             self.udpserver.shutdown()
+            self.udpserver.server_close()
             logging.info("HiQnet: UDP server shut down")
         if self.tcpserver:
             self.tcpserver.shutdown()
+            self.tcpserver.server_close()
             logging.info("HiQnet: TCP server shut down")
 
 
