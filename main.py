@@ -53,7 +53,17 @@ class Control():
 class HiQontrolApp(App):
     __version__ = '0.0.2'
     device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
-    control = Control(device)
+    control = None
+
+    def on_start(self):
+        """
+        Initialize device and network communications
+        """
+        self.device.startServer()
+        self.control = Control(self.device)
+
+    def on_stop(self):
+        self.device.stopServer()
 
     def build(self):
         self.title = 'HiQontrol'
