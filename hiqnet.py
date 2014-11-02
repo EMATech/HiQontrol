@@ -7,6 +7,7 @@ import struct
 import os
 import netifaces
 import socket
+import random
 try:
     import socketserver
 except ImportError:
@@ -17,8 +18,6 @@ import binascii
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
 PROTOCOL_VERSION = b'\x02'
-
-DEVICE_BROADCAST = 65535
 
 MIN_HEADER_LEN = 25  # bytes
 
@@ -198,7 +197,7 @@ class DeviceManager(VirtualDevice):
 
 class FQHiQnetAddress:
     def __init__(self,
-                 device_address=65535,  # Let's broadcast by default
+                 device_address=0,
                  vd_address=b'\x00',  # 8 bits
                  object_address=b'\x00\x00\x00',  # 24 bits
                  ):
@@ -206,6 +205,10 @@ class FQHiQnetAddress:
         # TODO: make vd_address and object_address int rather than byte arrays
         self.vd_address = vd_address
         self.object_address = object_address
+
+    @classmethod
+    def broadcastAddress(cls):
+        return cls(device_address=65535, vd_address=b'\x00', object_address=b'\x00\x00\x00')
 
     def __bytes__(self):
         return struct.pack('!H', self.device_address) + self.vd_address + self.object_address
@@ -287,7 +290,7 @@ class HiQnetMessage:
 
     payload = b''  # Placeholder, filled later, depends on the message
 
-    def __init__(self, source=FQHiQnetAddress(), destination=FQHiQnetAddress()):
+    def __init__(self, source, destination):
         self.source_address = source
         self.destination_address = destination
         self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
@@ -302,14 +305,21 @@ class HiQnetMessage:
         max_message_size = struct.pack('!I', 65535)  # FIXME: should really be the server's buffer size
         keep_alive_period = struct.pack('!H', DEFAULT_KEEPALIVE)
         network_id = ETHERNET_NETWORK_ID
-        mac_address = binascii.unhexlify(device.mac_address.replace(':', ''))
-        dhcp = struct.pack('!B', device.dhcp)
-        ip_address = socket.inet_aton(device.ip_address)
-        subnet_mask = socket.inet_aton(device.subnet_mask)
-        gateway_address = socket.inet_aton(device.gateway_address)
+        mac_address = binascii.unhexlify(device.network_info.mac_address.replace(':', ''))
+        dhcp = struct.pack('!B', device.network_info.dhcp)
+        ip_address = socket.inet_aton(device.network_infoip_address)
+        subnet_mask = socket.inet_aton(device.network_info.subnet_mask)
+        gateway_address = socket.inet_aton(device.network_info.gateway_address)
         self.payload = device_address + cost + serial_number_len + serial_number \
             + max_message_size + keep_alive_period + network_id \
             + mac_address + dhcp + ip_address + subnet_mask + gateway_address
+
+    def RequestAddress(self, req_addr):
+        self.message_id = MSG_REQADDR
+        self.payload = struct.pack('!H', req_addr)
+
+    def AddressUsed(self):
+        self.message_id = MSG_ADDRUSED
 
     def Hello(self):
         self.message_id = MSG_HELLO
@@ -390,6 +400,8 @@ class HiQnetMessage:
 # TODO: Event logs
 # TODO: Session
 
+# TODO: Device arrival announce
+
 
 class Device:
     """
@@ -402,6 +414,21 @@ class Device:
     def __init__(self, name, hiqnet_address):
         self.device_manager = DeviceManager(name)
         self.hiqnet_address = hiqnet_address
+
+    def negotiateAddress(self):
+        """
+        Generates a random HiQnet address to store and reuse on the device
+
+        The address is automatically checked on the network
+        """
+        requested_address = random.randrange(1, 65535)
+        connection = Connection()
+        message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
+                                destination=FQHiQnetAddress.broadcastAddress())
+        message.RequestAddress(self, requested_address)
+        connection.sendto('<broadcast>')
+        # FIXME: look for AddressUsed reply messages and renegotiate if found
+        return requested_address
 
 
 class Connection:
