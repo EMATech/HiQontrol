@@ -2,6 +2,7 @@
 
 #:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+#:import Logger kivy.logger.Logger
 
 <HiQontrol>:
     HomeScreen:
@@ -45,18 +46,19 @@
                     text: "Name:"
 
                 TextInput:
+                    id: local_name
                     text: app.getLocalName()
                     multiline: False
-                    on_text_validate: app.datastore.put('device_name', value=self.text)
 
                 Label:
                     size_hint_x: .5
                     text: "HiQnet Address:"
 
-                TextInput:
+                HiQNetAddressInput:
+                    # FIXME: only allow int values 1-65535
+                    id: local_hiqnet_address
                     text: app.getLocalHiQNetAddress()
                     multiline: False
-                    on_text_validate: app.datastore.put('device_address', value=self.text)
 
                 Label:
                     size_hint_x: .5
@@ -100,7 +102,13 @@
             Button:
                 text: "OK"
                 size_hint_y: None
-                on_press: about.dismiss()
+                on_press:
+                    # Save TextInput values on pressing OK
+                    # FIXME: put_async is broken upstream but would be far better
+                    app.datastore.put('device_name', value=local_name.text)
+                    app.datastore.put('device_address', value=int(local_hiqnet_address.text))
+                    app.storeUpdate()
+                    about.dismiss()
 
     Popup:
         id: infos

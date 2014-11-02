@@ -1,4 +1,6 @@
 import hiqnet
+import re
+from random import randrange
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
@@ -25,6 +27,7 @@ class MixScreenProto(Screen):
 
 class Control():
     locate = False
+    source_device = None
 
     def __init__(self, source_device):
         self.source_device = source_device
@@ -54,8 +57,12 @@ class HiQontrolApp(App):
         device = hiqnet.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
     except KeyError:
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
-        # FIXME: address should be negotiated and stored, not 0
-        device = hiqnet.Device(APPNAME, 0)
+        device_name = APPNAME
+        # FIXME: address should be negotiated
+        device_address = randrange(1, 65535)
+        device = hiqnet.Device(device_name, device_address)
+        datastore.put('device_name', value=device_name)
+        datastore.put('device_address', value=device_address)
     control = None
 
     def on_start(self):
@@ -84,6 +91,13 @@ class HiQontrolApp(App):
         self.title = APPNAME
         self.icon = 'assets/icon.png'
         return HiQontrol()
+
+    def storeUpdate(self):
+        Logger.info("Store updated, reloading device")
+        self.device.stopServer()
+        self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
+                                    self.datastore.get('device_address')['value'])
+        self.control = self.control = Control(self.device)
 
     def locateToggle(self):
         self.control.locateToggle()
