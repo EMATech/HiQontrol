@@ -464,19 +464,21 @@ class Device:
 
         udpthread.start()
         tcpthread.start()
-        logging.info("Servers started")
-        logging.info("UDP: " + udpthread.name)
-        logging.info("TCP: " + tcpthread.name)
+        logging.info("HiQnet: Servers started:")
+        logging.info("HiQnet: UDP: " + udpthread.name)
+        logging.info("HiQnet: TCP: " + tcpthread.name)
 
     def stopServer(self):
         """
         Stop UDP and TCP servers
         """
-        logging.info("Terminating servers")
+        logging.info("HiQnet: Terminating servers:")
         if self.udpserver:
             self.udpserver.shutdown()
+            logging.info("HiQnet: UDP server shut down")
         if self.tcpserver:
             self.tcpserver.shutdown()
+            logging.info("HiQnet: TCP server shut down")
 
 
 class Connection:
