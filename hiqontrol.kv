@@ -4,11 +4,30 @@
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
 #:import Logger kivy.logger.Logger
 
-<HiQontrol>:
+<SettingsLabel@Label>
+    size_hint_x: None
+    text_size: self.size
+    halign: 'right'
+    valign: 'top'
+
+<HiQNetAddressInput>
+    multiline: False
+
+# Can't get used to BoxLayout being horizontal by default
+<BoxLayout>
+    orientation: 'vertical'
+
+<Slider>
+    orientation: 'vertical'
+
+<Popup>
+    size_hint: .75, .75
+
+<HiQontrol@ScreenManager>:
     HomeScreen:
     MixScreenProto:
 
-<HomeScreen>:
+<HomeScreen@Screen>:
     id: home
     infos: infos.__self__
     add: add.__self__
@@ -21,15 +40,12 @@
     Popup:
         id: about
         title: "About " + app.title
-        size_hint: .75, .75
         on_parent:
             if self.parent == home: self.parent.remove_widget(self)
 
         BoxLayout:
-            orientation: 'vertical'
 
             BoxLayout:
-                orientation: 'vertical'
                 size_hint_y: None
 
                 Label:
@@ -41,8 +57,7 @@
             GridLayout:
                 cols: 2
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "Name:"
 
                 TextInput:
@@ -54,8 +69,7 @@
                     # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
                     #on_text_validate: local_hiqnet_address.focus = True
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "HiQnet Address:"
 
                 HiQNetAddressInput:
@@ -65,32 +79,28 @@
                     focus: False
                     on_text: app.storeNeedsUpdate()
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "MAC Address:"
 
                 TextInput:
                     text: app.getLocalMACAddress()
                     disabled: True
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "DHCP:"
 
                 CheckBox:
                     active: app.getLocalDHCPStatus()
                     disabled: True
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "IP Address:"
 
                 TextInput:
                     text: app.getLocalIPAddress()
                     disabled: True
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "Subnet Mask:"
 
                 TextInput:
@@ -98,7 +108,9 @@
                     disabled: True
 
                 Label:
-                    size_hint_x: .5
+                    size_hint_x: None
+                    text_size: self.size
+                    halign: 'right'
                     text: "Gateway:"
 
                 TextInput:
@@ -117,29 +129,25 @@
     Popup:
         id: infos
         title: "Device informations"
-        size_hint: .75, .75
         on_parent:
             if self.parent == home: self.parent.remove_widget(self)
 
         BoxLayout:
-            orientation: 'vertical'
 
             GridLayout:
                 cols: 2
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "IP Address:"
 
                 TextInput:
                     text: app.getIPAddress()
                     disabled: True
 
-                Label:
-                    size_hint_x: .5
+                SettingsLabel:
                     text: "HiQnet Address:"
 
-                TextInput:
+                HiQNetAddressInput:
                     text: app.getHiQnetAddress()
                     disabled: True
 
@@ -151,12 +159,10 @@
     Popup:
         id: add
         title: "Add a device"
-        size_hint: .75, .75
         on_parent:
             if self.parent == home: self.parent.remove_widget(self)
 
         BoxLayout:
-            orientation: 'vertical'
 
             GridLayout:
                 cols: 2
@@ -183,7 +189,6 @@
                     # TODO: do something useful
 
     Popup:
-        size_hint: .75, .75
         id: rem
         title: "Remove a device"
         on_parent:
@@ -195,7 +200,9 @@
                 text: "Are you sure?"
 
             BoxLayout:
+                orientation: 'horizontal'
                 size_hint_y: None
+
                 Button:
                     text: "No"
                     on_press: rem.dismiss()
@@ -207,19 +214,19 @@
                         # TODO: do something useful
 
     BoxLayout:
-        orientation: 'vertical'
 
         ActionBar:
             size_hint_y: None
 
             ActionView:
+                orientation: 'horizontal'
 
                 ActionPrevious:
                     app_icon: 'assets/icon.png'
-                    title: 'Home'
+                    title: "Home"
                     with_previous: False
                 ActionButton:
-                    text: 'About'  # TODO: replace by a nice icon
+                    text: "About"  # TODO: replace by a nice icon
                     on_press: root.about.open()
 
         AnchorLayout:
@@ -228,10 +235,8 @@
             padding: 100
 
             BoxLayout:
-                orientation: 'vertical'
 
                 GridLayout:
-                    id: device_list
                     # TODO: maybe replace by a ListView?
                     cols: 3
 
@@ -252,20 +257,23 @@
                         on_press: root.infos.open()
 
                 BoxLayout:
+                    orientation: 'horizontal'
                     size_hint_y: None
+
                     Button:
                         text: "-"  # TODO: replace by a nice icon
+                        disabled: True  # TODO: make them do something usefull
                         on_press: root.rem.open()
                     Button:
                         text: "+"  # TODO: replace by a nice icon
+                        disabled: True  # TODO: make them do something usefull
                         on_press: root.add.open()
 
 
-<MixScreenProto>
+<MixScreenProto@Screen>
     name: 'mix'
 
     BoxLayout:
-        orientation: 'vertical'
 
         ActionBar:
             size_hint_y: None
@@ -274,7 +282,7 @@
 
                 ActionPrevious:
                     app_icon: 'assets/icon.png'
-                    title: 'Mix'
+                    title: "Mix"
                     on_release:
                         root.manager.transition = RiseInTransition()
                         root.manager.current = 'home'
@@ -356,31 +364,22 @@
                 size_hint_y: None
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Slider:
-                orientation: 'vertical'
 
             Label:
                 text: "1"

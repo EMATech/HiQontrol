@@ -14,15 +14,8 @@ SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x0
 
 APPNAME = 'HiQontrol'
 
+
 class HiQontrol(ScreenManager):
-    pass
-
-
-class HomeScreen(Screen):
-    pass
-
-
-class MixScreenProto(Screen):
     pass
 
 
