@@ -24,11 +24,10 @@ class HiQontrol(ScreenManager):
 
 class ListLocateButton(ListItemButton):
     def __init__(self, **kwargs):
-        kwargs['on_press'] = self.Locate
-        super(ListItemButton, self).__init__(**kwargs)
-
-        def Locate():
-            print("GOTCHA")
+        self.hiqnet_address = kwargs['hiqnet_address']
+        self.ip_address = kwargs['ip_address']
+        self.serial_number = kwargs['serial_number']
+        super(ListLocateButton, self).__init__(**kwargs)
 
 
 class HiQNetAddressInput(TextInput):
@@ -47,22 +46,22 @@ class Control():
     def __init__(self, source_device):
         self.source_device = source_device
 
-    def init(self):
+    def init(self, hiqnet_dest):
         c = hiqnet.Connection()
         source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device.hiqnet_address)
-        destination_address = hiqnet.FQHiQnetAddress(SI_COMPACT_16_DEVICE_ADDRESS)
+        destination_address = hiqnet.FQHiQnetAddress(hiqnet_dest)
         message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
         return c, message
 
-    def locateToggle(self):
-        c, message = self.init()
+    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
+        c, message = self.init(hiqnet_dest)
         if not self.locate:
-            message.LocateOn(SI_COMPACT_16_SERIAL)
+            message.LocateOn(serial_dest)
             self.locate = True
         else:
-            message.LocateOff(SI_COMPACT_16_SERIAL)
+            message.LocateOff(serial_dest)
             self.locate = False
-        c.sendto(message, SI_COMPACT_16_IP)
+        c.sendto(message, ip_dest)
 
 
 class HiQontrolApp(App):
@@ -86,12 +85,11 @@ class HiQontrolApp(App):
         """
         self.device.startServer()
         self.control = Control(self.device)
-        self.populate()
 
     def populate(self):
         item_strings = ['0', '1']
-        integers_dict = {'0': {'text': 'Si Compact 16', 'address': 1659, 'is_selected': False},
-                         '1': {'text': 'Lool', 'address': 9999, 'is_selected': False}}
+        integers_dict = {'0': {'text': 'Si Compact 16', 'ip_address': '192.168.1.6', 'hiqnet_address': SI_COMPACT_16_DEVICE_ADDRESS, 'is_selected': False},
+                         '1': {'text': 'Lool', 'ip_address': '192.168.1.3', 'hiqnet_address': 9999, 'is_selected': False}}
 
         args_converter = \
             lambda row_index, rec: \
@@ -103,10 +101,13 @@ class HiQontrolApp(App):
                                            'is_representing_cls': True}},
                                {'cls': ListItemButton,
                                 'kwargs': {'text': 'i'}},
+                               {'cls': ListLocateButton,
+                                'kwargs': {'text': 'L',
+                                           'hiqnet_address': rec['hiqnet_address'],
+                                           'ip_address': rec['ip_address'],
+                                           'serial_number': SI_COMPACT_16_SERIAL}},  # FIXME
                                {'cls': ListItemButton,
-                                'kwargs': {'text': 'L'}},
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': str(rec['address'])}}]}
+                                'kwargs': {'text': str(rec['ip_address'])}}]}
 
         dict_adapter = DictAdapter(sorted_keys=item_strings,
                                    data=integers_dict,
@@ -152,8 +153,8 @@ class HiQontrolApp(App):
             self.control = self.control = Control(self.device)
             self.store_needs_update = False
 
-    def locateToggle(self):
-        self.control.locateToggle()
+    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
+        self.control.locateToggle(hiqnet_dest, ip_dest, serial_dest)
 
     def getHiQnetAddress(self):
         # FIXME: placeholder

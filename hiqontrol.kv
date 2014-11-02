@@ -25,9 +25,12 @@
 
 <HomeScreen@Screen>
 
+<ListLocateButton@ListItemButton>
+    on_press: app.locateToggle(self.hiqnet_address, self.ip_address, self.serial_number)
+
 <MixScreenProto@Screen>
 
-<HiQontrol@ScreenManager>:
+<HiQontrol>:
 
     HomeScreen:
         id: home
@@ -228,7 +231,7 @@
                         with_previous: False
                     ActionButton:
                         text: "About"  # TODO: replace by a nice icon
-                        on_press: root.about.open()
+                        on_press: about.open()
 
             AnchorLayout:
                 anchor_x: 'center'
