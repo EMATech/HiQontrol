@@ -58,3 +58,6 @@ target/
 # Buildozer binaries
 bin/
 *.apk
+
+# HiQontrol settings file
+settings.json
