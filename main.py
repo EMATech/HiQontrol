@@ -1,10 +1,9 @@
 import hiqnet
 import re
-from random import randrange
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
 
 # FIXME: this should not be hardcoded but autodetected
