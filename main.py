@@ -61,8 +61,7 @@ class HiQontrolApp(App):
     except KeyError:
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
         device_name = APPNAME
-        # FIXME: address should be negotiated
-        device_address = randrange(1, 65535)
+        device_address = hiqnet.Device.negotiateAddress()
         device = hiqnet.Device(device_name, device_address)
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)

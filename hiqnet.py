@@ -430,18 +430,19 @@ class Device:
         self.manager = DeviceManager(name)
         self.hiqnet_address = hiqnet_address
 
-    def negotiateAddress(self):
+    @staticmethod
+    def negotiateAddress():
         """
         Generates a random HiQnet address to datastore and reuse on the device
 
         The address is automatically checked on the network
         """
         requested_address = random.randrange(1, 65535)
-        connection = Connection()
-        message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
-                                destination=FQHiQnetAddress.broadcastAddress())
-        message.RequestAddress(self, requested_address)
-        connection.sendto('<broadcast>')
+        #connection = Connection()
+        #message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
+        #                        destination=FQHiQnetAddress.broadcastAddress())
+        #message.RequestAddress(self, requested_address)
+        #connection.sendto('<broadcast>')
         # FIXME: look for AddressUsed reply messages and renegotiate if found
         return requested_address
 
