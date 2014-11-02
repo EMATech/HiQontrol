@@ -141,14 +141,14 @@ class NetworkInfo:
         iface = netifaces.interfaces()[1]
         addrs = netifaces.ifaddresses(iface)
         mac_address = addrs[netifaces.AF_LINK][0]['addr']
+        try:
+            mac_address.decode('ascii')
+        except UnicodeDecodeError:
+            # We got Garbage (Android bug?), let's default to something sane
+            mac_address = '00:00:00:00:00:00'
         ip_address = addrs[netifaces.AF_INET][0]['addr']
         subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
-        try:
-            gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        except KeyError:
-            # This does not work on android. It's OK.
-            gateway_address = '0.0.0.0'
-            pass
+        gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
         # Seems impossible to know. Let's say it is.
         dhcp = True
         return cls(mac_address, dhcp, ip_address, subnet_mask, gateway_address)
