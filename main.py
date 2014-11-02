@@ -3,8 +3,12 @@ import re
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
-from kivy.uix.screenmanager import ScreenManager
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.textinput import TextInput
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.listview import CompositeListItem, ListView, ListItemButton, ListItemLabel
+from kivy.properties import ObjectProperty, DictProperty, ListProperty
 
 # FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.6'
@@ -15,7 +19,16 @@ APPNAME = 'HiQontrol'
 
 
 class HiQontrol(ScreenManager):
-    pass
+    list = ObjectProperty()
+
+
+class ListLocateButton(ListItemButton):
+    def __init__(self, **kwargs):
+        kwargs['on_press'] = self.Locate
+        super(ListItemButton, self).__init__(**kwargs)
+
+        def Locate():
+            print("GOTCHA")
 
 
 class HiQNetAddressInput(TextInput):
@@ -73,6 +86,36 @@ class HiQontrolApp(App):
         """
         self.device.startServer()
         self.control = Control(self.device)
+        self.populate()
+
+    def populate(self):
+        item_strings = ['0', '1']
+        integers_dict = {'0': {'text': 'Si Compact 16', 'address': 1659, 'is_selected': False},
+                         '1': {'text': 'Lool', 'address': 9999, 'is_selected': False}}
+
+        args_converter = \
+            lambda row_index, rec: \
+                {'text': rec['text'],
+                 'size_hint_y': None,
+                 'height': 25,
+                 'cls_dicts': [{'cls': ListItemLabel,
+                                'kwargs': {'text': rec['text'],
+                                           'is_representing_cls': True}},
+                               {'cls': ListItemButton,
+                                'kwargs': {'text': 'i'}},
+                               {'cls': ListItemButton,
+                                'kwargs': {'text': 'L'}},
+                               {'cls': ListItemButton,
+                                'kwargs': {'text': str(rec['address'])}}]}
+
+        dict_adapter = DictAdapter(sorted_keys=item_strings,
+                                   data=integers_dict,
+                                   args_converter=args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=CompositeListItem)
+
+        return dict_adapter
 
     def on_pause(self):
         """
@@ -91,7 +134,7 @@ class HiQontrolApp(App):
     def build(self):
         self.title = APPNAME
         self.icon = 'assets/icon.png'
-        return HiQontrol()
+        return HiQontrol(list=self.populate())
 
     def storeNeedsUpdate(self):
         self.store_needs_update = True

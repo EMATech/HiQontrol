@@ -14,7 +14,7 @@
     multiline: False
 
 # Can't get used to BoxLayout being horizontal by default
-<BoxLayout>
+<VBoxLayout@BoxLayout>
     orientation: 'vertical'
 
 <Slider>
@@ -23,396 +23,403 @@
 <Popup>
     size_hint: .75, .75
 
+<HomeScreen@Screen>
+
+<MixScreenProto@Screen>
+
 <HiQontrol@ScreenManager>:
+
     HomeScreen:
-    MixScreenProto:
+        id: home
+        infos: infos.__self__
+        add: add.__self__
+        rem: rem.__self__
+        about: about.__self__
+        name: 'home'
 
-<HomeScreen@Screen>:
-    id: home
-    infos: infos.__self__
-    add: add.__self__
-    rem: rem.__self__
-    about: about.__self__
-    name: 'home'
+        # TODO: Add an appealing background. Perhaps similar to the splashscreen.
 
-    # TODO: Add an appealing background. Perhaps similar to the splashscreen.
+        Popup:
+            id: about
+            title: "About " + app.title
+            on_parent:
+                if self.parent == home: self.parent.remove_widget(self)
 
-    Popup:
-        id: about
-        title: "About " + app.title
-        on_parent:
-            if self.parent == home: self.parent.remove_widget(self)
+            VBoxLayout:
 
-        BoxLayout:
+                VBoxLayout:
+                    size_hint_y: None
 
-            BoxLayout:
-                size_hint_y: None
+                    Label:
+                        text: "A HiQnet controller for Soundcraft Si Compact 16 digital mixing consoles"
 
-                Label:
-                    text: "A HiQnet controller for Soundcraft Si Compact 16 digital mixing consoles"
-
-                Label:
-                    text: "Version " + app.__version__ + " - Copyright (C) 2014 Raphaël Doursenaud"
-
-            GridLayout:
-                cols: 2
-
-                SettingsLabel:
-                    text: "Name:"
-
-                TextInput:
-                    id: local_name
-                    text: app.getLocalName()
-                    multiline: False
-                    focus: True
-                    on_text: app.storeNeedsUpdate()
-                    # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
-                    #on_text_validate: local_hiqnet_address.focus = True
-
-                SettingsLabel:
-                    text: "HiQnet Address:"
-
-                HiQNetAddressInput:
-                    # FIXME: only allow int values 1-65535
-                    id: local_hiqnet_address
-                    text: app.getLocalHiQNetAddress()
-                    focus: False
-                    on_text: app.storeNeedsUpdate()
-
-                SettingsLabel:
-                    text: "MAC Address:"
-
-                TextInput:
-                    text: app.getLocalMACAddress()
-                    disabled: True
-
-                SettingsLabel:
-                    text: "DHCP:"
-
-                CheckBox:
-                    active: app.getLocalDHCPStatus()
-                    disabled: True
-
-                SettingsLabel:
-                    text: "IP Address:"
-
-                TextInput:
-                    text: app.getLocalIPAddress()
-                    disabled: True
-
-                SettingsLabel:
-                    text: "Subnet Mask:"
-
-                TextInput:
-                    text: app.getLocalSubnetMask()
-                    disabled: True
-
-                Label:
-                    size_hint_x: None
-                    text_size: self.size
-                    halign: 'right'
-                    text: "Gateway:"
-
-                TextInput:
-                    text: app.getLocalGateway()
-                    disabled: True
-
-            Button:
-                text: "OK"
-                size_hint_y: None
-                on_press:
-                    # Save TextInput values on pressing OK
-                    # FIXME: put_async is broken upstream but would be far better
-                    app.storeUpdate(local_name.text, local_hiqnet_address.text)
-                    about.dismiss()
-
-    Popup:
-        id: infos
-        title: "Device informations"
-        on_parent:
-            if self.parent == home: self.parent.remove_widget(self)
-
-        BoxLayout:
-
-            GridLayout:
-                cols: 2
-
-                SettingsLabel:
-                    text: "IP Address:"
-
-                TextInput:
-                    text: app.getIPAddress()
-                    disabled: True
-
-                SettingsLabel:
-                    text: "HiQnet Address:"
-
-                HiQNetAddressInput:
-                    text: app.getHiQnetAddress()
-                    disabled: True
-
-            Button:
-                text: "OK"
-                size_hint_y: None
-                on_press: infos.dismiss()
-
-    Popup:
-        id: add
-        title: "Add a device"
-        on_parent:
-            if self.parent == home: self.parent.remove_widget(self)
-
-        BoxLayout:
-
-            GridLayout:
-                cols: 2
-
-                Label:
-                    text: "Model:"
-                    size_hint_x: .5
-                # TODO: maybe replace by a dropdown list
-                TextInput:
-                    text: "Si Compact 16"
-                    disabled: True
-
-                Label:
-                    text: "HiQnetAddress:"
-                    size_hint_x: .5
-                TextInput:
-                    # TODO: number input only
-
-            Button:
-                text: "Add"
-                size_hint_y: None
-                on_press:
-                    add.dismiss()
-                    # TODO: do something useful
-
-    Popup:
-        id: rem
-        title: "Remove a device"
-        on_parent:
-            if self.parent == home: self.parent.remove_widget(self)
-
-        BoxLayout:
-            orientation: 'vertical'
-            Label:
-                text: "Are you sure?"
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-
-                Button:
-                    text: "No"
-                    on_press: rem.dismiss()
-
-                Button:
-                    text: "Yes"
-                    on_press:
-                        rem.dismiss()
-                        # TODO: do something useful
-
-    BoxLayout:
-
-        ActionBar:
-            size_hint_y: None
-
-            ActionView:
-                orientation: 'horizontal'
-
-                ActionPrevious:
-                    app_icon: 'assets/icon.png'
-                    title: "Home"
-                    with_previous: False
-                ActionButton:
-                    text: "About"  # TODO: replace by a nice icon
-                    on_press: root.about.open()
-
-        AnchorLayout:
-            anchor_x: 'center'
-            anchor_y: 'center'
-            padding: 100
-
-            BoxLayout:
+                    Label:
+                        text: "Version " + app.__version__ + " - Copyright (C) 2014 Raphaël Doursenaud"
 
                 GridLayout:
-                    # TODO: maybe replace by a ListView?
-                    cols: 3
+                    cols: 2
 
-                    Button:
+                    SettingsLabel:
+                        text: "Name:"
+
+                    TextInput:
+                        id: local_name
+                        text: app.getLocalName()
+                        multiline: False
+                        focus: True
+                        on_text: app.storeNeedsUpdate()
+                        # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
+                        #on_text_validate: local_hiqnet_address.focus = True
+
+                    SettingsLabel:
+                        text: "HiQnet Address:"
+
+                    HiQNetAddressInput:
+                        # FIXME: only allow int values 1-65535
+                        id: local_hiqnet_address
+                        text: app.getLocalHiQNetAddress()
+                        focus: False
+                        on_text: app.storeNeedsUpdate()
+
+                    SettingsLabel:
+                        text: "MAC Address:"
+
+                    TextInput:
+                        text: app.getLocalMACAddress()
+                        disabled: True
+
+                    SettingsLabel:
+                        text: "DHCP:"
+
+                    CheckBox:
+                        active: app.getLocalDHCPStatus()
+                        disabled: True
+
+                    SettingsLabel:
+                        text: "IP Address:"
+
+                    TextInput:
+                        text: app.getLocalIPAddress()
+                        disabled: True
+
+                    SettingsLabel:
+                        text: "Subnet Mask:"
+
+                    TextInput:
+                        text: app.getLocalSubnetMask()
+                        disabled: True
+
+                    Label:
+                        size_hint_x: None
+                        text_size: self.size
+                        halign: 'right'
+                        text: "Gateway:"
+
+                    TextInput:
+                        text: app.getLocalGateway()
+                        disabled: True
+
+                Button:
+                    text: "OK"
+                    size_hint_y: None
+                    on_press:
+                        # Save TextInput values on pressing OK
+                        # FIXME: put_async is broken upstream but would be far better
+                        app.storeUpdate(local_name.text, local_hiqnet_address.text)
+                        about.dismiss()
+
+        Popup:
+            id: infos
+            title: "Device informations"
+            on_parent:
+                if self.parent == home: self.parent.remove_widget(self)
+
+            VBoxLayout:
+
+                GridLayout:
+                    cols: 2
+
+                    SettingsLabel:
+                        text: "IP Address:"
+
+                    TextInput:
+                        text: app.getIPAddress()
+                        disabled: True
+
+                    SettingsLabel:
+                        text: "HiQnet Address:"
+
+                    HiQNetAddressInput:
+                        text: app.getHiQnetAddress()
+                        disabled: True
+
+                Button:
+                    text: "OK"
+                    size_hint_y: None
+                    on_press: infos.dismiss()
+
+        Popup:
+            id: add
+            title: "Add a device"
+            on_parent:
+                if self.parent == home: self.parent.remove_widget(self)
+
+            VBoxLayout:
+
+                GridLayout:
+                    cols: 2
+
+                    Label:
+                        text: "Model:"
+                        size_hint_x: .5
+                    # TODO: maybe replace by a dropdown list
+                    TextInput:
                         text: "Si Compact 16"
-                        on_press:
-                            root.manager.transition = FallOutTransition()
-                            root.manager.current = 'mix'
+                        disabled: True
 
-                    ToggleButton:
-                        size_hint_x: None
-                        text: "L"  # TODO: replace by a nice icon
-                        on_press: app.locateToggle()
+                    Label:
+                        text: "HiQnetAddress:"
+                        size_hint_x: .5
+                    TextInput:
+                        # TODO: number input only
 
-                    Button:
-                        size_hint_x: None
-                        text: "i"  # TODO: replace by a nice icon
-                        on_press: root.infos.open()
+                Button:
+                    text: "Add"
+                    size_hint_y: None
+                    on_press:
+                        add.dismiss()
+                        # TODO: do something useful
+
+        Popup:
+            id: rem
+            title: "Remove a device"
+            on_parent:
+                if self.parent == home: self.parent.remove_widget(self)
+
+            VBoxLayout:
+                Label:
+                    text: "Are you sure?"
 
                 BoxLayout:
                     orientation: 'horizontal'
                     size_hint_y: None
 
                     Button:
-                        text: "-"  # TODO: replace by a nice icon
-                        disabled: True  # TODO: make them do something usefull
-                        on_press: root.rem.open()
+                        text: "No"
+                        on_press: rem.dismiss()
+
                     Button:
-                        text: "+"  # TODO: replace by a nice icon
-                        disabled: True  # TODO: make them do something usefull
-                        on_press: root.add.open()
+                        text: "Yes"
+                        on_press:
+                            rem.dismiss()
+                            # TODO: do something useful
 
+        VBoxLayout:
 
-<MixScreenProto@Screen>
-    name: 'mix'
-
-    BoxLayout:
-
-        ActionBar:
-            size_hint_y: None
-
-            ActionView:
-
-                ActionPrevious:
-                    app_icon: 'assets/icon.png'
-                    title: "Mix"
-                    on_release:
-                        root.manager.transition = RiseInTransition()
-                        root.manager.current = 'home'
-
-        # TODO: make this layout generative according to the console's description file
-        GridLayout:
-            cols: 9
-
-            TextInput:
-                text: "1"
+            ActionBar:
                 size_hint_y: None
 
-            TextInput:
-                text: "2"
+                ActionView:
+                    orientation: 'horizontal'
+
+                    ActionPrevious:
+                        app_icon: 'assets/icon.png'
+                        title: "Home"
+                        with_previous: False
+                    ActionButton:
+                        text: "About"  # TODO: replace by a nice icon
+                        on_press: root.about.open()
+
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: 100
+
+                VBoxLayout:
+
+                    GridLayout:
+                        cols: 2
+                        ListView:
+                            adapter: root.list
+
+
+    #                GridLayout:
+    #                    # TODO: maybe replace by a ListView?
+    #                    cols: 3
+    #
+    #                    Button:
+    #                        text: "Si Compact 16"
+    #                        on_press:
+    #                            root.manager.transition = FallOutTransition()
+    #                            root.manager.current = 'mix'
+    #
+    #                    ToggleButton:
+    #                        size_hint_x: None
+    #                        text: "L"  # TODO: replace by a nice icon
+    #                        on_press: app.locateToggle()
+    #
+    #                    Button:
+    #                        size_hint_x: None
+    #                        text: "i"  # TODO: replace by a nice icon
+    #                        on_press: root.infos.open()
+
+                    VBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+
+                        Button:
+                            text: "-"  # TODO: replace by a nice icon
+                            disabled: True  # TODO: make them do something usefull
+                            on_press: root.rem.open()
+                        Button:
+                            text: "+"  # TODO: replace by a nice icon
+                            disabled: True  # TODO: make them do something usefull
+                            on_press: root.add.open()
+
+
+    MixScreenProto:
+        name: 'mix'
+
+        VBoxLayout:
+
+            ActionBar:
                 size_hint_y: None
 
-            TextInput:
-                text: "3"
-                size_hint_y: None
+                ActionView:
 
-            TextInput:
-                text: "4"
-                size_hint_y: None
+                    ActionPrevious:
+                        app_icon: 'assets/icon.png'
+                        title: "Mix"
+                        on_release:
+                            root.manager.transition = RiseInTransition()
+                            root.manager.current = 'home'
 
-            TextInput:
-                text: "5"
-                size_hint_y: None
+            # TODO: make this layout generative according to the console's description file
+            GridLayout:
+                cols: 9
 
-            TextInput:
-                text: "6"
-                size_hint_y: None
+                TextInput:
+                    text: "1"
+                    size_hint_y: None
 
-            TextInput:
-                text: "7"
-                size_hint_y: None
+                TextInput:
+                    text: "2"
+                    size_hint_y: None
 
-            TextInput:
-                text: "8"
-                size_hint_y: None
+                TextInput:
+                    text: "3"
+                    size_hint_y: None
 
-            TextInput:
-                text: "L & R"
-                size_hint_y: None
+                TextInput:
+                    text: "4"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                TextInput:
+                    text: "5"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                TextInput:
+                    text: "6"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                TextInput:
+                    text: "7"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                TextInput:
+                    text: "8"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                TextInput:
+                    text: "L & R"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            ToggleButton:
-                text: "ON"
-                size_hint_y: None
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                ToggleButton:
+                    text: "ON"
+                    size_hint_y: None
 
-            Slider:
+                Slider:
 
-            Slider:
+                Slider:
 
-            Slider:
+                Slider:
 
-            Slider:
+                Slider:
 
-            Label:
-                text: "1"
-                size_hint_y: None
+                Slider:
 
-            Label:
-                text: "2"
-                size_hint_y: None
+                Slider:
 
-            Label:
-                text: "3"
-                size_hint_y: None
+                Slider:
 
-            Label:
-                text: "4"
-                size_hint_y: None
+                Slider:
 
-            Label:
-                text: "5"
-                size_hint_y: None
+                Slider:
 
-            Label:
-                text: "6"
-                size_hint_y: None
+                Label:
+                    text: "1"
+                    size_hint_y: None
 
-            Label:
-                text: "7"
-                size_hint_y: None
+                Label:
+                    text: "2"
+                    size_hint_y: None
 
-            Label:
-                text: "8"
-                size_hint_y: None
+                Label:
+                    text: "3"
+                    size_hint_y: None
 
-            Label:
-                text: "L & R"
-                size_hint_y: None
+                Label:
+                    text: "4"
+                    size_hint_y: None
+
+                Label:
+                    text: "5"
+                    size_hint_y: None
+
+                Label:
+                    text: "6"
+                    size_hint_y: None
+
+                Label:
+                    text: "7"
+                    size_hint_y: None
+
+                Label:
+                    text: "8"
+                    size_hint_y: None
+
+                Label:
+                    text: "L & R"
+                    size_hint_y: None
