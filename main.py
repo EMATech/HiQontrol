@@ -87,11 +87,11 @@ class HiQontrolApp(App):
 
     def getHiQnetAddress(self):
         # FIXME: placeholder
-        return '1629'
+        return str(SI_COMPACT_16_DEVICE_ADDRESS)
 
     def getIPAddress(self):
         # FIXME: placeholder
-        return '192.168.1.6'
+        return SI_COMPACT_16_IP
 
     def getLocalName(self):
         return self.device.manager.name_string
