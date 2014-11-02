@@ -432,7 +432,7 @@ class Device:
 
     def negotiateAddress(self):
         """
-        Generates a random HiQnet address to store and reuse on the device
+        Generates a random HiQnet address to datastore and reuse on the device
 
         The address is automatically checked on the network
         """

@@ -1,6 +1,7 @@
 import hiqnet
 from kivy.app import App
-from kivy.storage.dictstore import DictStore
+from kivy.logger import Logger
+from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 # FIXME: this should not be hardcoded but autodetected
@@ -8,11 +9,7 @@ SI_COMPACT_16_IP = '192.168.1.6'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 
-# TODO: add configuration for MY_DEVICE parameters
-MY_DEVICE_NAME = 'HiQontrol'
-# FIXME: this should be negotiated and stored
-MY_DEVICE_ADDRESS = 2376
-
+APPNAME = 'HiQontrol'
 
 class HiQontrol(ScreenManager):
     pass
@@ -52,7 +49,13 @@ class Control():
 
 class HiQontrolApp(App):
     __version__ = '0.0.2'
-    device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
+    datastore = JsonStore('settings.json')
+    try:
+        device = hiqnet.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
+    except KeyError:
+        Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
+        # FIXME: address should be negotiated and stored, not 0
+        device = hiqnet.Device(APPNAME, 0)
     control = None
 
     def on_start(self):
@@ -78,7 +81,7 @@ class HiQontrolApp(App):
         self.device.stopServer()
 
     def build(self):
-        self.title = 'HiQontrol'
+        self.title = APPNAME
         self.icon = 'assets/icon.png'
         return HiQontrol()
 
