@@ -4,11 +4,10 @@ from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.adapters.dictadapter import DictAdapter
+from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.textinput import TextInput
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import CompositeListItem, ListView, ListItemButton, ListItemLabel
-from kivy.properties import ObjectProperty, DictProperty, ListProperty
+from kivy.uix.listview import CompositeListItem, ListItemButton, ListItemLabel
 
 # FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.6'
@@ -18,16 +17,19 @@ SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x0
 APPNAME = 'HiQontrol'
 
 
-class HiQontrol(ScreenManager):
-    list = ObjectProperty()
-
-
 class ListLocateButton(ListItemButton):
     def __init__(self, **kwargs):
         self.hiqnet_address = kwargs['hiqnet_address']
         self.ip_address = kwargs['ip_address']
         self.serial_number = kwargs['serial_number']
         super(ListLocateButton, self).__init__(**kwargs)
+
+
+class ListInfoButton(ListItemButton):
+    pass
+
+class ListMixButton(ListItemButton):
+    pass
 
 
 class HiQNetAddressInput(TextInput):
@@ -64,9 +66,14 @@ class Control():
         c.sendto(message, ip_dest)
 
 
+class HiQontrol(ScreenManager):
+    list = ObjectProperty()
+
+
 class HiQontrolApp(App):
     __version__ = '0.0.2'
     datastore = JsonStore('settings.json')
+    store_needs_update = False
     try:
         device = hiqnet.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
     except KeyError:
@@ -76,8 +83,12 @@ class HiQontrolApp(App):
         device = hiqnet.Device(device_name, device_address)
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)
-    store_needs_update = False
     control = None
+
+    def build(self):
+        self.title = APPNAME
+        self.icon = 'assets/icon.png'
+        return HiQontrol(list=self.populate())
 
     def on_start(self):
         """
@@ -85,38 +96,6 @@ class HiQontrolApp(App):
         """
         self.device.startServer()
         self.control = Control(self.device)
-
-    def populate(self):
-        item_strings = ['0', '1']
-        integers_dict = {'0': {'text': 'Si Compact 16', 'ip_address': '192.168.1.6', 'hiqnet_address': SI_COMPACT_16_DEVICE_ADDRESS, 'is_selected': False},
-                         '1': {'text': 'Lool', 'ip_address': '192.168.1.3', 'hiqnet_address': 9999, 'is_selected': False}}
-
-        args_converter = \
-            lambda row_index, rec: \
-                {'text': rec['text'],
-                 'size_hint_y': None,
-                 'height': 25,
-                 'cls_dicts': [{'cls': ListItemLabel,
-                                'kwargs': {'text': rec['text'],
-                                           'is_representing_cls': True}},
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': 'i'}},
-                               {'cls': ListLocateButton,
-                                'kwargs': {'text': 'L',
-                                           'hiqnet_address': rec['hiqnet_address'],
-                                           'ip_address': rec['ip_address'],
-                                           'serial_number': SI_COMPACT_16_SERIAL}},  # FIXME
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': str(rec['ip_address'])}}]}
-
-        dict_adapter = DictAdapter(sorted_keys=item_strings,
-                                   data=integers_dict,
-                                   args_converter=args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=CompositeListItem)
-
-        return dict_adapter
 
     def on_pause(self):
         """
@@ -132,11 +111,6 @@ class HiQontrolApp(App):
     def on_stop(self):
         self.device.stopServer()
 
-    def build(self):
-        self.title = APPNAME
-        self.icon = 'assets/icon.png'
-        return HiQontrol(list=self.populate())
-
     def storeNeedsUpdate(self):
         self.store_needs_update = True
 
@@ -150,11 +124,8 @@ class HiQontrolApp(App):
             self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
                                         self.datastore.get('device_address')['value'])
             self.device.startServer()
-            self.control = self.control = Control(self.device)
+            self.control = Control(self.device)
             self.store_needs_update = False
-
-    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
-        self.control.locateToggle(hiqnet_dest, ip_dest, serial_dest)
 
     def getHiQnetAddress(self):
         # FIXME: placeholder
@@ -184,6 +155,49 @@ class HiQontrolApp(App):
 
     def getLocalGateway(self):
         return self.device.network_info.gateway_address
+
+    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
+        self.control.locateToggle(hiqnet_dest, ip_dest, serial_dest)
+
+    def populate(self):
+        # FIXME: This should be dynamically detected from the network or manually added/removed
+        item_strings = ['0', '1']
+        integers_dict = {
+            '0': {'text': 'Si Compact 16', 'ip_address': SI_COMPACT_16_IP,
+                  'hiqnet_address': SI_COMPACT_16_DEVICE_ADDRESS,
+                  'is_selected': False},
+            '1': {'text': 'Lool', 'ip_address': '192.168.1.3', 'hiqnet_address': 9999, 'is_selected': False}}
+
+        args_converter = \
+            lambda row_index, rec: \
+                {'text': rec['text'],
+                 'size_hint_y': None,
+                 'height': 25,
+                 'cls_dicts': [{'cls': ListItemLabel,
+                                'kwargs': {'text': rec['text'],
+                                           'is_representing_cls': True}},
+                               {'cls': ListInfoButton,
+                                'kwargs': {'text': 'i',  # TODO: replace by a nice icon
+                                           'size_hint_x': None}},
+                               {'cls': ListLocateButton,
+                                'kwargs': {'text': 'L',  # TODO: replace by a nice icon
+                                           'size_hint_x': None,
+                                           'hiqnet_address': rec['hiqnet_address'],
+                                           'ip_address': rec['ip_address'],
+                                           'serial_number': SI_COMPACT_16_SERIAL}},  # FIXME
+                               {'cls': ListMixButton,
+                                'kwargs': {'text': '>',  # TODO: replace by a nice icon
+                                           'size_hint_x': None}}]}
+
+        dict_adapter = DictAdapter(sorted_keys=item_strings,
+                                   data=integers_dict,
+                                   args_converter=args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=CompositeListItem)
+
+        return dict_adapter
+
 
 if __name__ == '__main__':
     HiQontrolApp().run()

@@ -25,19 +25,27 @@
 
 <HomeScreen@Screen>
 
-<ListLocateButton@ListItemButton>
+<ListLocateButton>
     on_press: app.locateToggle(self.hiqnet_address, self.ip_address, self.serial_number)
+
+# FIXME: there should really be a better way than parent[n] to get the topmost element
+<ListInfoButton>
+    on_press: root.parent.parent.parent.parent.infos.open()
+
+<ListMixButton>
+    on_press:
+        root.parent.parent.parent.parent.parent.parent.parent.parent.parent.parent.transition = FallOutTransition()
+        root.parent.parent.parent.parent.parent.parent.parent.parent.parent.parent.current = 'mix'
 
 <MixScreenProto@Screen>
 
 <HiQontrol>:
+    add: add.__self__
+    rem: rem.__self__
+    about: about.__self__
 
     HomeScreen:
         id: home
-        infos: infos.__self__
-        add: add.__self__
-        rem: rem.__self__
-        about: about.__self__
         name: 'home'
 
         # TODO: Add an appealing background. Perhaps similar to the splashscreen.
@@ -183,7 +191,7 @@
                     Label:
                         text: "HiQnetAddress:"
                         size_hint_x: .5
-                    TextInput:
+                    HiQNetAddressInput:
                         # TODO: number input only
 
                 Button:
@@ -241,31 +249,34 @@
                 VBoxLayout:
 
                     GridLayout:
+                        id: console_list
+                        infos: infos.__self__
                         cols: 2
+
                         ListView:
+                            infos: infos.__self__
                             adapter: root.list
 
-
-    #                GridLayout:
-    #                    # TODO: maybe replace by a ListView?
-    #                    cols: 3
-    #
-    #                    Button:
-    #                        text: "Si Compact 16"
-    #                        on_press:
-    #                            root.manager.transition = FallOutTransition()
-    #                            root.manager.current = 'mix'
-    #
-    #                    ToggleButton:
-    #                        size_hint_x: None
-    #                        text: "L"  # TODO: replace by a nice icon
-    #                        on_press: app.locateToggle()
-    #
-    #                    Button:
-    #                        size_hint_x: None
-    #                        text: "i"  # TODO: replace by a nice icon
-    #                        on_press: root.infos.open()
-
+#                    GridLayout:
+#                        # TODO: maybe replace by a ListView?
+#                        cols: 3
+#
+#                        Button:
+#                            text: "Si Compact 16"
+#                            on_press:
+#                                root.transition = FallOutTransition()
+#                                root.current = 'mix'
+#
+#                        ToggleButton:
+#                            size_hint_x: None
+#                            text: "L"  # TODO: replace by a nice icon
+#                            on_press: app.locateToggle(infos.hiqnet_address, infos.ip_address)
+#
+#                        Button:
+#                            size_hint_x: None
+#                            text: "i"  # TODO: replace by a nice icon
+#                            on_press: infos.open()
+#
                     VBoxLayout:
                         orientation: 'horizontal'
                         size_hint_y: None
@@ -281,6 +292,7 @@
 
 
     MixScreenProto:
+        id: mix
         name: 'mix'
 
         VBoxLayout:
@@ -294,8 +306,8 @@
                         app_icon: 'assets/icon.png'
                         title: "Mix"
                         on_release:
-                            root.manager.transition = RiseInTransition()
-                            root.manager.current = 'home'
+                            root.transition = RiseInTransition()
+                            root.current = 'home'
 
             # TODO: make this layout generative according to the console's description file
             GridLayout:
