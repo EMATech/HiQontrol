@@ -31,13 +31,12 @@ class MixScreenProto(Screen):
 class Control():
     locate = False
 
-    def __init__(self):
-        pass
+    def __init__(self, source_device):
+        self.source_device = source_device
 
     def init(self):
-        source_device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
         c = hiqnet.Connection()
-        source_address = hiqnet.FQHiQnetAddress(device_address=source_device.hiqnet_address)
+        source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device.hiqnet_address)
         destination_address = hiqnet.FQHiQnetAddress(SI_COMPACT_16_DEVICE_ADDRESS)
         message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
         return c, message
@@ -54,7 +53,8 @@ class Control():
 
 
 class HiQontrolApp(App):
-    control = Control()
+    device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
+    control = Control(device)
 
     def build(self):
         self.title = 'HiQontrol'
@@ -71,6 +71,27 @@ class HiQontrolApp(App):
     def getIPAddress(self):
         # FIXME: placeholder
         return '192.168.1.6'
+
+    def getLocalName(self):
+        return self.device.device_manager.name_string
+
+    def getLocalHiQNetAddress(self):
+        return str(self.device.hiqnet_address)
+
+    def getLocalMACAddress(self):
+        return self.device.network_info.mac_address
+
+    def getLocalDHCPStatus(self):
+        return self.device.network_info.dhcp
+
+    def getLocalIPAddress(self):
+        return self.device.network_info.ip_address
+
+    def getLocalSubnetMask(self):
+        return self.device.network_info.subnet_mask
+
+    def getLocalGateway(self):
+        return self.device.network_info.gateway_address
 
 if __name__ == '__main__':
     HiQontrolApp().run()
