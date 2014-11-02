@@ -4,7 +4,6 @@ __author__ = 'Raphaël Doursenaud'
 
 import hiqnet
 import logging
-import threading
 import socket
 try:
     import socketserver
@@ -42,31 +41,6 @@ def init_logging():
     return logger
 
 
-def server(my_device):
-    socketserver.UDPServer.allow_reuse_address = True
-    socketserver.TCPServer.allow_reuse_address = True
-
-    udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', hiqnet.IP_PORT), hiqnet.UDPHandler)
-    # FIXME: derive address from device
-    tcpserver = socketserver.ThreadingTCPServer((my_device.network_info.ip_address, hiqnet.IP_PORT), hiqnet.TCPHandler)
-
-    # TODO: receive meter messages
-    #meterserver = socketserver.ThreadingUDPServer((my_device.network_info.ip_address, '3333'), meterHandler)
-
-    udpthread = threading.Thread(target=udpserver.serve_forever)
-    tcpthread = threading.Thread(target=tcpserver.serve_forever)
-
-    try:
-        udpthread.start()
-        tcpthread.start()
-        logger.info("Servers started")
-        logger.info("UDP: " + udpthread.name)
-        logger.info("TCP: " + tcpthread.name)
-    except (KeyboardInterrupt, SystemExit):
-        udpserver.shutdown()
-        tcpserver.shutdown()
-
-
 def hello(source_device, destination_device):
     c = hiqnet.Connection()
     source_address = hiqnet.FQHiQnetAddress(device_address=source_device.hiqnet_address)
@@ -99,5 +73,6 @@ if __name__ == '__main__':
     logger.debug(my_device.network_info.ip_address)
     logger.debug(my_device.network_info.subnet_mask)
     logger.debug(my_device.network_info.gateway_address)
-    server(my_device)
+    my_device.startServer()
     hello(my_device, SI_COMPACT_16_DEVICE_ADDRESS)
+    my_device.stopServer()

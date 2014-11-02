@@ -12,8 +12,9 @@ try:
     import socketserver
 except ImportError:
     import SocketServer as socketserver
-
 import binascii
+import threading
+import logging
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
@@ -145,6 +146,13 @@ class NetworkInfo:
         except UnicodeDecodeError:
             # We got Garbage (Android bug?), let's default to something sane
             mac_address = '00:00:00:00:00:00'
+        except AttributeError:
+            # We are running Python 3
+            try:
+                bytes(mac_address, 'ascii')
+            except UnicodeDecodeError:
+                # We got Garbage (Android bug?), let's default to something sane
+                mac_address = '00:00:00:00:00:00'
         ip_address = addrs[netifaces.AF_INET][0]['addr']
         subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
         gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
@@ -301,7 +309,12 @@ class HiQnetMessage:
         device_address = struct.pack('!H', self.source_address.device_address)
         cost = b'\x01'
         serial_number_len = struct.pack('!H', 16)
-        serial_number = struct.pack('!16s', bytes(device.manager.serial_number.decode('ascii')))  # May use utf-16-be == UCS-2
+        try:
+            serial_number = bytes(device.manager.serial_number.decode('ascii'))
+        except AttributeError:
+            # We are running Python 3
+            serial_number = bytes(device.manager.serial_number, 'ascii')
+        serial_number = struct.pack('!16s', serial_number)  # May use utf-16-be == UCS-2
         max_message_size = struct.pack('!I', 65535)  # FIXME: should really be the server's buffer size
         keep_alive_period = struct.pack('!H', DEFAULT_KEEPALIVE)
         network_id = ETHERNET_NETWORK_ID
@@ -410,6 +423,8 @@ class Device:
     hiqnet_address = None
     network_info = NetworkInfo.autodetect()
     manager = None
+    udpserver = None
+    tcpserver = None
 
     def __init__(self, name, hiqnet_address):
         self.manager = DeviceManager(name)
@@ -429,6 +444,39 @@ class Device:
         connection.sendto('<broadcast>')
         # FIXME: look for AddressUsed reply messages and renegotiate if found
         return requested_address
+
+    def startServer(self):
+        """
+        Start UDP and TCP servers listening for HiQnet messages on the network
+        """
+        socketserver.UDPServer.allow_reuse_address = True
+        socketserver.TCPServer.allow_reuse_address = True
+
+        self.udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', IP_PORT), UDPHandler)
+        self.tcpserver = socketserver.ThreadingTCPServer((self.network_info.ip_address, IP_PORT),
+                                                          TCPHandler)
+
+        # TODO: receive meter messages
+        # meterserver = socketserver.ThreadingUDPServer((self.network_info.ip_address, '3333'), meterHandler)
+
+        udpthread = threading.Thread(target=self.udpserver.serve_forever)
+        tcpthread = threading.Thread(target=self.tcpserver.serve_forever)
+
+        udpthread.start()
+        tcpthread.start()
+        logging.info("Servers started")
+        logging.info("UDP: " + udpthread.name)
+        logging.info("TCP: " + tcpthread.name)
+
+    def stopServer(self):
+        """
+        Stop UDP and TCP servers
+        """
+        logging.info("Terminating servers")
+        if self.udpserver:
+            self.udpserver.shutdown()
+        if self.tcpserver:
+            self.tcpserver.shutdown()
 
 
 class Connection:
