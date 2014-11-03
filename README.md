@@ -6,7 +6,7 @@ Soundraft Si Compact 16 Harman HiQnet Controller
 Status
 ======
 
-Work In Progress
+Work In Progress, [Proof of Concept](https://github.com/EMATech/HiQontrol/releases/tag/v0.0.1) available for Android
 
 License
 =======
