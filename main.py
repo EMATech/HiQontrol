@@ -172,8 +172,8 @@ class HiQontrolApp(App):
             lambda row_index, rec: \
                 {'text': rec['text'],
                  'size_hint_y': None,
-                 'height': 25,
-                 'cls_dicts': [{'cls': ListItemLabel,
+                 'height': 50,
+                 'cls_dicts': [{'cls': ListItemButton,
                                 'kwargs': {'text': rec['text'],
                                            'is_representing_cls': True}},
                                {'cls': ListInfoButton,
