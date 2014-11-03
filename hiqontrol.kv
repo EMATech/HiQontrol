@@ -5,10 +5,10 @@
 #:import Logger kivy.logger.Logger
 
 <SettingsLabel@Label>
-    size_hint_x: None
+    size_hint_x: .5
     text_size: self.size
     halign: 'right'
-    valign: 'top'
+    valign: 'middle'
 
 <HiQNetAddressInput>
     multiline: False
@@ -149,6 +149,20 @@
 
                 GridLayout:
                     cols: 2
+
+                    SettingsLabel:
+                        text: "Model:"
+
+                    TextInput:
+                        text: app.getModel()
+                        disabled: True
+
+                    SettingsLabel:
+                        text: "Name:"
+
+                    TextInput:
+                        text: app.getName()
+                        disabled: True
 
                     SettingsLabel:
                         text: "IP Address:"

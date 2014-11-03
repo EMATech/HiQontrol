@@ -127,6 +127,14 @@ class HiQontrolApp(App):
             self.control = Control(self.device)
             self.store_needs_update = False
 
+    def getModel(self):
+        # FIXME: placeholder
+        return "Si Compact 16"
+
+    def getName(self):
+        # FIXME: placeholder
+        return "Si Compact 16"
+
     def getHiQnetAddress(self):
         # FIXME: placeholder
         return str(SI_COMPACT_16_DEVICE_ADDRESS)
