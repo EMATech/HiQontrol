@@ -77,7 +77,8 @@
                         id: local_name
                         text: app.getLocalName()
                         multiline: False
-                        focus: True
+                        # FIXME: we want the focus on popup open
+                        #focus: True
                         on_text: app.storeNeedsUpdate()
                         # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
                         #on_text_validate: local_hiqnet_address.focus = True
