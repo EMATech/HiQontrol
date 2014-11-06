@@ -22,7 +22,7 @@ source.exclude_exts = spec, iml, md, txt, yaml
 source.exclude_dirs = tests, bin
 
 # (list) List of exclusions using pattern matching
-source.exclude_patterns = client.py, com.py, decoding, meter.py
+source.exclude_patterns = tools/*, client.py, com.py, decoding, meter.py
 
 # (str) Application versioning (method 1)
 version.regex = __version__ = ['"](.*)['"]
@@ -59,7 +59,7 @@ fullscreen = 1
 android.permissions = INTERNET
 
 # (int) Android API to use
-android.api = 14
+android.api = 21
 
 # (int) Minimum API required (8 = Android 2.2 devices)
 #android.minapi = 8
@@ -144,7 +144,7 @@ android.branch = master
 [buildozer]
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
-log_level = 2
+log_level = 1
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1
