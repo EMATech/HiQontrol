@@ -55,6 +55,11 @@
             title: "About " + app.title
             on_parent:
                 if self.parent == home: self.parent.remove_widget(self)
+            on_open:
+                local_name.focus = True
+            on_dismiss:
+                local_name.focus = False
+                local_hiqnet_address.focus = False
 
             VBoxLayout:
 
@@ -77,8 +82,6 @@
                         id: local_name
                         text: app.getLocalName()
                         multiline: False
-                        # FIXME: we want the focus on popup open
-                        #focus: True
                         on_text: app.storeNeedsUpdate()
                         # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
                         #on_text_validate: local_hiqnet_address.focus = True
