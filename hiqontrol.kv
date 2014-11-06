@@ -90,7 +90,6 @@
                         text: "HiQnet Address:"
 
                     HiQNetAddressInput:
-                        # FIXME: only allow int values 1-65535
                         id: local_hiqnet_address
                         text: app.getLocalHiQNetAddress()
                         focus: False
@@ -124,10 +123,7 @@
                         text: app.getLocalSubnetMask()
                         disabled: True
 
-                    Label:
-                        size_hint_x: None
-                        text_size: self.size
-                        halign: 'right'
+                    SettingsLabel:
                         text: "Gateway:"
 
                     TextInput:
@@ -198,19 +194,18 @@
                 GridLayout:
                     cols: 2
 
-                    Label:
+                    SettingsLabel:
                         text: "Model:"
-                        size_hint_x: .5
+
                     # TODO: maybe replace by a dropdown list
                     TextInput:
                         text: "Si Compact 16"
                         disabled: True
 
-                    Label:
+                    SettingsLabel:
                         text: "HiQnetAddress:"
-                        size_hint_x: .5
+
                     HiQNetAddressInput:
-                        # TODO: number input only
 
                 Button:
                     text: "Add"
@@ -275,26 +270,6 @@
                             infos: infos.__self__
                             adapter: root.list
 
-#                    GridLayout:
-#                        # TODO: maybe replace by a ListView?
-#                        cols: 3
-#
-#                        Button:
-#                            text: "Si Compact 16"
-#                            on_press:
-#                                root.transition = FallOutTransition()
-#                                root.current = 'mix'
-#
-#                        ToggleButton:
-#                            size_hint_x: None
-#                            text: "L"  # TODO: replace by a nice icon
-#                            on_press: app.locateToggle(infos.hiqnet_address, infos.ip_address)
-#
-#                        Button:
-#                            size_hint_x: None
-#                            text: "i"  # TODO: replace by a nice icon
-#                            on_press: infos.open()
-#
                     VBoxLayout:
                         orientation: 'horizontal'
                         size_hint_y: None

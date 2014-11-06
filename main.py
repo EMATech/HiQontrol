@@ -5,9 +5,9 @@ from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.properties import ObjectProperty
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
-from kivy.uix.listview import CompositeListItem, ListItemButton, ListItemLabel
+from kivy.uix.listview import CompositeListItem, ListItemButton
 
 # FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.6'
@@ -205,7 +205,6 @@ class HiQontrolApp(App):
                                    cls=CompositeListItem)
 
         return dict_adapter
-
 
 if __name__ == '__main__':
     HiQontrolApp().run()
