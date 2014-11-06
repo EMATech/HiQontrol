@@ -5,6 +5,7 @@ from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.properties import ObjectProperty
+from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
 from kivy.uix.listview import CompositeListItem, ListItemButton
@@ -18,11 +19,36 @@ APPNAME = 'HiQontrol'
 
 
 class ListLocateButton(ListItemButton):
+    blinking = False
+
     def __init__(self, **kwargs):
         self.hiqnet_address = kwargs['hiqnet_address']
         self.ip_address = kwargs['ip_address']
         self.serial_number = kwargs['serial_number']
         super(ListLocateButton, self).__init__(**kwargs)
+
+    def toggle_blinking(self):
+        if self.blinking:
+            self.blink_stop()
+        else:
+            self.blink_start()
+
+    def blink_start(self):
+        self.background_color = [1, 0, 0, 1]
+        Clock.schedule_interval(self.change_color, 1/2)
+        self.blinking = True
+
+    def blink_stop(self):
+        Clock.unschedule(self.change_color)
+        self.blinking = False
+
+    def change_color(self, *args):
+        self.background_color = [
+            int(not bool(self.background_color[0])),
+            self.background_color[1],
+            self.background_color[2],
+            self.background_color[3],
+        ]
 
 
 class ListInfoButton(ListItemButton):

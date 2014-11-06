@@ -26,7 +26,9 @@
 <HomeScreen@Screen>
 
 <ListLocateButton>
-    on_press: app.locateToggle(self.hiqnet_address, self.ip_address, self.serial_number)
+    on_press:
+        app.locateToggle(self.hiqnet_address, self.ip_address, self.serial_number)
+        self.toggle_blinking()
 
 # FIXME: there should really be a better way than parent[n] to get the topmost element
 <ListInfoButton>
