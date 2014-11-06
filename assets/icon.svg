@@ -9,8 +9,8 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="512"
-   height="512"
+   width="1024"
+   height="1024"
    id="svg2"
    version="1.1"
    inkscape:version="0.48.5 r10040"
@@ -24,12 +24,12 @@
      id="base"
      pagecolor="#7f7f7f"
      bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="1"
+     borderopacity="1"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35"
-     inkscape:cx="-73.571429"
-     inkscape:cy="514.28571"
+     inkscape:zoom="0.91"
+     inkscape:cx="517.27231"
+     inkscape:cy="473.25037"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -54,42 +54,54 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-540.36218)">
-    <text
-       xml:space="preserve"
-       style="font-size:34.80266953000000285px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
-       x="134.96822"
-       y="868.73895"
-       id="text2985"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2987"
-         x="134.96822"
+     transform="translate(0,-28.36218)">
+    <g
+       id="g3868"
+       transform="matrix(2,0,0,2,0,-1052.3622)">
+      <rect
+         ry="64"
+         y="540.36218"
+         x="0"
+         height="512"
+         width="512"
+         id="rect3079"
+         style="fill:#808080;fill-opacity:1;stroke:#cccccc;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text2985"
          y="868.73895"
-         style="font-size:417.63204956000004131px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Audiowide;-inkscape-font-specification:Audiowide">Q</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:10.75623893999999936px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
-       x="30.717697"
-       y="1021.3243"
-       id="text2989"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2991"
-         x="30.717697"
+         x="134.96822"
+         style="font-size:34.80266953px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           style="font-size:417.63204956px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Audiowide;-inkscape-font-specification:Audiowide"
+           y="868.73895"
+           x="134.96822"
+           id="tspan2987"
+           sodipodi:role="line">Q</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text2989"
          y="1021.3243"
-         style="font-size:129.07487488000001008px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Audiowide;-inkscape-font-specification:Audiowide">ontrol</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:10.75623893999999936px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="31.104923"
-       y="920.58441"
-       id="text2989-3"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2991-8"
-         x="31.104923"
+         x="30.717697"
+         style="font-size:10.75623894px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           style="font-size:129.07487488px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Audiowide;-inkscape-font-specification:Audiowide"
+           y="1021.3243"
+           x="30.717697"
+           id="tspan2991"
+           sodipodi:role="line">ontrol</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text2989-3"
          y="920.58441"
-         style="font-size:129.07487488000001008px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;font-family:Audiowide;-inkscape-font-specification:Audiowide">Hi</tspan></text>
+         x="31.104923"
+         style="font-size:10.75623894px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           style="font-size:129.07487488px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;font-family:Audiowide;-inkscape-font-specification:Audiowide"
+           y="920.58441"
+           x="31.104923"
+           id="tspan2991-8"
+           sodipodi:role="line">Hi</tspan></text>
+    </g>
   </g>
 </svg>
