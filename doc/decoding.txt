@@ -27,8 +27,8 @@ f2
 6e      Sess num MSB
 04      Sess num LSB
 [Payload]
-ff      Locate MSB
-ff      Locate LSB (Always on)
+ff      locate MSB
+ff      locate LSB (Always on)
 00
 10
 53

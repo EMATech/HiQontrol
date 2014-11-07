@@ -27,7 +27,7 @@
 
 <ListLocateButton>
     on_press:
-        app.locateToggle(self.hiqnet_address, self.ip_address, self.serial_number)
+        app.locate_toggle(self.hiqnet_address, self.ip_address, self.serial_number)
         self.toggle_blinking()
 
 # FIXME: there should really be a better way than parent[n] to get the topmost element
@@ -82,9 +82,9 @@
 
                     TextInput:
                         id: local_name
-                        text: app.getLocalName()
+                        text: app.get_local_name()
                         multiline: False
-                        on_text: app.storeNeedsUpdate()
+                        on_text: app.store_needs_update()
                         # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
                         #on_text_validate: local_hiqnet_address.focus = True
 
@@ -93,43 +93,43 @@
 
                     HiQNetAddressInput:
                         id: local_hiqnet_address
-                        text: app.getLocalHiQNetAddress()
+                        text: app.get_local_hiqnet_address()
                         focus: False
-                        on_text: app.storeNeedsUpdate()
+                        on_text: app.store_needs_update()
 
                     SettingsLabel:
                         text: "MAC Address:"
 
                     TextInput:
-                        text: app.getLocalMACAddress()
+                        text: app.get_local_mac_address()
                         disabled: True
 
                     SettingsLabel:
                         text: "DHCP:"
 
                     CheckBox:
-                        active: app.getLocalDHCPStatus()
+                        active: app.get_local_dhcp_status()
                         disabled: True
 
                     SettingsLabel:
                         text: "IP Address:"
 
                     TextInput:
-                        text: app.getLocalIPAddress()
+                        text: app.get_local_ip_address()
                         disabled: True
 
                     SettingsLabel:
                         text: "Subnet Mask:"
 
                     TextInput:
-                        text: app.getLocalSubnetMask()
+                        text: app.get_local_subnet_mask()
                         disabled: True
 
                     SettingsLabel:
                         text: "Gateway:"
 
                     TextInput:
-                        text: app.getLocalGateway()
+                        text: app.get_local_gateway()
                         disabled: True
 
                 Button:
@@ -138,7 +138,7 @@
                     on_press:
                         # Save TextInput values on pressing OK
                         # FIXME: put_async is broken upstream but would be far better
-                        app.storeUpdate(local_name.text, local_hiqnet_address.text)
+                        app.store_update(local_name.text, local_hiqnet_address.text)
                         about.dismiss()
 
         Popup:
@@ -156,28 +156,28 @@
                         text: "Model:"
 
                     TextInput:
-                        text: app.getModel()
+                        text: app.get_model()
                         disabled: True
 
                     SettingsLabel:
                         text: "Name:"
 
                     TextInput:
-                        text: app.getName()
+                        text: app.get_name()
                         disabled: True
 
                     SettingsLabel:
                         text: "IP Address:"
 
                     TextInput:
-                        text: app.getIPAddress()
+                        text: app.get_ip_address()
                         disabled: True
 
                     SettingsLabel:
                         text: "HiQnet Address:"
 
                     HiQNetAddressInput:
-                        text: app.getHiQnetAddress()
+                        text: app.get_hiqnet_address()
                         disabled: True
 
                 Button:

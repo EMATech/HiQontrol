@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#*- coding: utf-8 -*
+# *- coding: utf-8 -*
 __author__ = 'Raphaël Doursenaud'
 
 import hiqnet
@@ -8,6 +8,7 @@ import socket
 try:
     import socketserver
 except ImportError:
+    # noinspection PyPep8Naming,PyUnresolvedReferences
     import SocketServer as socketserver
 
 SI_COMPACT_16_IP = '192.168.1.6'
@@ -20,12 +21,13 @@ MY_DEVICE_NAME = 'HiQontrolCLI'
 # FIXME: this should be assigned automatically
 MY_DEVICE_ADDRESS = 2376
 
+
 def init_logging():
     """
     Initialize logging
     """
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
+    l = logging.getLogger(__name__)
+    l.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
@@ -34,36 +36,36 @@ def init_logging():
 
     ch.setFormatter(formatter)
 
-    logger.addHandler(ch)
+    l.addHandler(ch)
 
-    logger.info('Initialized logging')
+    l.info('Initialized logging')
 
-    return logger
+    return l
 
 
 def hello(source_device, destination_device):
     c = hiqnet.Connection()
     source_address = hiqnet.FQHiQnetAddress(device_address=source_device.hiqnet_address)
     destination_address = hiqnet.FQHiQnetAddress(device_address=destination_device)
-    message = hiqnet.HiQnetMessage(source=source_address, destination=hiqnet.FQHiQnetAddress.broadcastAddress())
-    message.DiscoInfo(device=source_device)
+    message = hiqnet.HiQnetMessage(source=source_address, destination=hiqnet.FQHiQnetAddress.broadcast_address())
+    message.disco_info(device=source_device)
     c.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     c.sendto(message, '<broadcast>')
     c.sendto(message, '<broadcast>')
     c.sendto(message, '<broadcast>')
     c.sendto(message, '<broadcast>')
     c.sendto(message, '<broadcast>')
-    logger.info("Sent DiscoInfo")
+    logger.info("Sent disco_info")
 
-    #message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
-    #message.LocateOnSI_COMPACT_16_SERIAL)
-    #c.sendto(message, SI_COMPACT_16_IP)
-    #logger.info("Sent Locate ON")
-
-    #message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
-    #message.Hello(source_device)
-    #c.sendto(message, SI_COMPACT_16_IP)
-    #logger.info("Sent Hello")
+    # message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+    # message.LocateOnSI_COMPACT_16_SERIAL)
+    # c.sendto(message, SI_COMPACT_16_IP)
+    # logger.info("Sent locate ON")
+    #
+    # message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+    # message.hello(source_device)
+    # c.sendto(message, SI_COMPACT_16_IP)
+    # logger.info("Sent hello")
 
 if __name__ == '__main__':
     logger = init_logging()
@@ -73,6 +75,6 @@ if __name__ == '__main__':
     logger.debug(my_device.network_info.ip_address)
     logger.debug(my_device.network_info.subnet_mask)
     logger.debug(my_device.network_info.gateway_address)
-    my_device.startServer()
+    my_device.start_server()
     hello(my_device, SI_COMPACT_16_DEVICE_ADDRESS)
-    my_device.stopServer()
+    my_device.stop_server()

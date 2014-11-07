@@ -11,6 +11,7 @@ import random
 try:
     import socketserver
 except ImportError:
+    # noinspection PyPep8Naming,PyUnresolvedReferences
     import SocketServer as socketserver
 import binascii
 import threading
@@ -215,7 +216,7 @@ class FQHiQnetAddress:
         self.object_address = object_address
 
     @classmethod
-    def broadcastAddress(cls):
+    def broadcast_address(cls):
         return cls(device_address=65535, vd_address=b'\x00', object_address=b'\x00\x00\x00')
 
     def __bytes__(self):
@@ -303,7 +304,7 @@ class HiQnetMessage:
         self.destination_address = destination
         self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
 
-    def DiscoInfo(self, device):
+    def disco_info(self, device):
         self.message_id = MSG_DISCOINFO
         # Payload
         device_address = struct.pack('!H', self.source_address.device_address)
@@ -327,24 +328,24 @@ class HiQnetMessage:
             + max_message_size + keep_alive_period + network_id \
             + mac_address + dhcp + ip_address + subnet_mask + gateway_address
 
-    def RequestAddress(self, req_addr):
+    def request_address(self, req_addr):
         self.message_id = MSG_REQADDR
         self.payload = struct.pack('!H', req_addr)
 
-    def AddressUsed(self):
+    def address_used(self):
         self.message_id = MSG_ADDRUSED
 
-    def Hello(self):
+    def hello(self):
         self.message_id = MSG_HELLO
         session_number = os.urandom(2)
         flag_mask = DEFAULT_FLAG_MASK
         self.payload = session_number + flag_mask
         return session_number
 
-    def getAttributes(self):
+    def get_attributes(self):
         self.message_id = MSG_GETATTR
 
-    def getVDList(self):
+    def get_vd_list(self):
         self.message_id = MSG_GETVDLIST
 
     def store(self):
@@ -353,7 +354,7 @@ class HiQnetMessage:
     def recall(self):
         self.message_id = MSG_RECALL
 
-    def Locate(self, time, serial_number):
+    def locate(self, time, serial_number):
         """
         :param time: time the leds should flash in ms
                      0x0000 turns off locate led(s)
@@ -364,12 +365,11 @@ class HiQnetMessage:
         serial_number_len = struct.pack('!H', len(serial_number))
         self.payload = time + serial_number_len + serial_number
 
-    def LocateOn(self, serial_number):
-        self.Locate(b'\xff\xff', serial_number)
+    def locate_on(self, serial_number):
+        self.locate(b'\xff\xff', serial_number)
 
-    def LocateOff(self,serial_number):
-        self.Locate(b'\x00\x00', serial_number)
-
+    def locate_off(self, serial_number):
+        self.locate(b'\x00\x00', serial_number)
 
     def _build_optional_headers(self):
         # Optional error header
@@ -393,7 +393,7 @@ class HiQnetMessage:
 
     def _compute_messagelen(self):
         messagelen = len(self.payload) + struct.unpack('!B', self.headerlen)[0]
-        self.messagelen =struct.pack('!I', messagelen)
+        self.messagelen = struct.pack('!I', messagelen)
 
     def _build_header(self):
         self._build_optional_headers()
@@ -431,22 +431,22 @@ class Device:
         self.hiqnet_address = hiqnet_address
 
     @staticmethod
-    def negotiateAddress():
+    def negotiate_address():
         """
         Generates a random HiQnet address to datastore and reuse on the device
 
         The address is automatically checked on the network
         """
         requested_address = random.randrange(1, 65535)
-        #connection = Connection()
-        #message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
-        #                        destination=FQHiQnetAddress.broadcastAddress())
-        #message.RequestAddress(self, requested_address)
-        #connection.sendto('<broadcast>')
-        # FIXME: look for AddressUsed reply messages and renegotiate if found
+        # connection = Connection()
+        # message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
+        #                        destination=FQHiQnetAddress.broadcast_address())
+        # message.request_address(self, requested_address)
+        # connection.sendto('<broadcast>')
+        # FIXME: look for address_used reply messages and renegotiate if found
         return requested_address
 
-    def startServer(self):
+    def start_server(self):
         """
         Start UDP and TCP servers listening for HiQnet messages on the network
         """
@@ -455,7 +455,7 @@ class Device:
 
         self.udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', IP_PORT), UDPHandler)
         self.tcpserver = socketserver.ThreadingTCPServer((self.network_info.ip_address, IP_PORT),
-                                                          TCPHandler)
+                                                         TCPHandler)
 
         # TODO: receive meter messages
         # meterserver = socketserver.ThreadingUDPServer((self.network_info.ip_address, '3333'), meterHandler)
@@ -469,7 +469,7 @@ class Device:
         logging.info("HiQnet: UDP: " + udpthread.name)
         logging.info("HiQnet: TCP: " + tcpthread.name)
 
-    def stopServer(self):
+    def stop_server(self):
         """
         Stop UDP and TCP servers
         """
@@ -521,7 +521,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         data = self.request[0].strip()
-        socket = self.request[1]
+        s = self.request[1]
         print("Received UDP: ")
         print(binascii.hexlify(data))
 

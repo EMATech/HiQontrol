@@ -35,7 +35,7 @@ class ListLocateButton(ListItemButton):
 
     def blink_start(self):
         self.background_color = [1, 0, 0, 1]
-        Clock.schedule_interval(self.change_color, 1/2)
+        Clock.schedule_interval(self.change_color, 1 / 2)
         self.blinking = True
 
     def blink_stop(self):
@@ -54,6 +54,7 @@ class ListLocateButton(ListItemButton):
 class ListInfoButton(ListItemButton):
     pass
 
+
 class ListMixButton(ListItemButton):
     pass
 
@@ -61,6 +62,7 @@ class ListMixButton(ListItemButton):
 class HiQNetAddressInput(TextInput):
     # FIXME: don't allow value of 0 or over 65535
     pat = re.compile('[^0-9]]')
+
     def insert_text(self, substring, from_undo=False):
         pat = self.pat
         s = re.sub(pat, '', substring)
@@ -81,13 +83,13 @@ class Control():
         message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
         return c, message
 
-    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
+    def locate_toggle(self, hiqnet_dest, ip_dest, serial_dest):
         c, message = self.init(hiqnet_dest)
         if not self.locate:
-            message.LocateOn(serial_dest)
+            message.locate_on(serial_dest)
             self.locate = True
         else:
-            message.LocateOff(serial_dest)
+            message.locate_off(serial_dest)
             self.locate = False
         c.sendto(message, ip_dest)
 
@@ -100,12 +102,13 @@ class HiQontrolApp(App):
     __version__ = '0.0.2'
     datastore = JsonStore('settings.json')
     store_needs_update = False
+    device = None
     try:
         device = hiqnet.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
     except KeyError:
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
         device_name = APPNAME
-        device_address = hiqnet.Device.negotiateAddress()
+        device_address = hiqnet.Device.negotiate_address()
         device = hiqnet.Device(device_name, device_address)
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)
@@ -120,78 +123,78 @@ class HiQontrolApp(App):
         """
         Initialize device and network communications
         """
-        self.device.startServer()
+        self.device.start_server()
         self.control = Control(self.device)
 
     def on_pause(self):
         """
         Enable pause mode
         """
-        self.device.stopServer()
+        self.device.stop_server()
         return True
 
     def on_resume(self):
-        self.device.startServer()
+        self.device.start_server()
         pass
 
     def on_stop(self):
-        self.device.stopServer()
+        self.device.stop_server()
 
-    def storeNeedsUpdate(self):
+    def store_needs_udate(self):
         self.store_needs_update = True
 
-    def storeUpdate(self, name, address):
+    def store_update(self, name, address):
         if self.store_needs_update:
             Logger.info(APPNAME + ": Updating store")
             self.datastore.put('device_name', value=name)
             self.datastore.put('device_address', value=int(address))
             Logger.info(APPNAME + ": Store updated, reloading device")
-            self.device.stopServer()
+            self.device.stop_server()
             self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
                                         self.datastore.get('device_address')['value'])
-            self.device.startServer()
+            self.device.start_server()
             self.control = Control(self.device)
             self.store_needs_update = False
 
-    def getModel(self):
+    def get_model(self):
         # FIXME: placeholder
         return "Si Compact 16"
 
-    def getName(self):
+    def get_name(self):
         # FIXME: placeholder
         return "Si Compact 16"
 
-    def getHiQnetAddress(self):
+    def get_hiqnet_address(self):
         # FIXME: placeholder
         return str(SI_COMPACT_16_DEVICE_ADDRESS)
 
-    def getIPAddress(self):
+    def get_ip_address(self):
         # FIXME: placeholder
         return SI_COMPACT_16_IP
 
-    def getLocalName(self):
+    def get_local_name(self):
         return self.device.manager.name_string
 
-    def getLocalHiQNetAddress(self):
+    def get_local_hiqnet_address(self):
         return str(self.device.hiqnet_address)
 
-    def getLocalMACAddress(self):
+    def get_local_mac_address(self):
         return self.device.network_info.mac_address
 
-    def getLocalDHCPStatus(self):
+    def get_local_dhcp_status(self):
         return self.device.network_info.dhcp
 
-    def getLocalIPAddress(self):
+    def get_local_ip_address(self):
         return self.device.network_info.ip_address
 
-    def getLocalSubnetMask(self):
+    def get_local_subnet_mask(self):
         return self.device.network_info.subnet_mask
 
-    def getLocalGateway(self):
+    def get_local_gateway(self):
         return self.device.network_info.gateway_address
 
-    def locateToggle(self, hiqnet_dest, ip_dest, serial_dest):
-        self.control.locateToggle(hiqnet_dest, ip_dest, serial_dest)
+    def locate_toggle(self, hiqnet_dest, ip_dest, serial_dest):
+        self.control.locate_toggle(hiqnet_dest, ip_dest, serial_dest)
 
     def populate(self):
         # FIXME: This should be dynamically detected from the network or manually added/removed
@@ -204,24 +207,24 @@ class HiQontrolApp(App):
 
         args_converter = \
             lambda row_index, rec: \
-                {'text': rec['text'],
-                 'size_hint_y': None,
-                 'height': 50,
-                 'cls_dicts': [{'cls': ListItemButton,
-                                'kwargs': {'text': rec['text'],
-                                           'is_representing_cls': True}},
-                               {'cls': ListInfoButton,
-                                'kwargs': {'text': 'i',  # TODO: replace by a nice icon
-                                           'size_hint_x': None}},
-                               {'cls': ListLocateButton,
-                                'kwargs': {'text': 'L',  # TODO: replace by a nice icon
-                                           'size_hint_x': None,
-                                           'hiqnet_address': rec['hiqnet_address'],
-                                           'ip_address': rec['ip_address'],
-                                           'serial_number': SI_COMPACT_16_SERIAL}},  # FIXME
-                               {'cls': ListMixButton,
-                                'kwargs': {'text': '>',  # TODO: replace by a nice icon
-                                           'size_hint_x': None}}]}
+            {'text': rec['text'],
+             'size_hint_y': None,
+             'height': 50,
+             'cls_dicts': [{'cls': ListItemButton,
+                            'kwargs': {'text': rec['text'],
+                                       'is_representing_cls': True}},
+                           {'cls': ListInfoButton,
+                            'kwargs': {'text': 'i',  # TODO: replace by a nice icon
+                                       'size_hint_x': None}},
+                           {'cls': ListLocateButton,
+                            'kwargs': {'text': 'L',  # TODO: replace by a nice icon
+                                       'size_hint_x': None,
+                                       'hiqnet_address': rec['hiqnet_address'],
+                                       'ip_address': rec['ip_address'],
+                                       'serial_number': SI_COMPACT_16_SERIAL}},  # FIXME
+                           {'cls': ListMixButton,
+                            'kwargs': {'text': '>',  # TODO: replace by a nice icon
+                                       'size_hint_x': None}}]}
 
         dict_adapter = DictAdapter(sorted_keys=item_strings,
                                    data=integers_dict,
