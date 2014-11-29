@@ -55,6 +55,7 @@ docs/_build/
 target/
 
 # Buildozer binaries
+.buildozer
 bin/
 *.apk
 
