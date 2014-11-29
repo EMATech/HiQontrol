@@ -45,6 +45,7 @@
     add: add.__self__
     rem: rem.__self__
     about: about.__self__
+    nettest: nettest.__self__
 
     HomeScreen:
         id: home
@@ -252,6 +253,7 @@
                         app_icon: 'assets/icon.png'
                         title: "Home"
                         with_previous: False
+
                     ActionButton:
                         text: "About"  # TODO: replace by a nice icon
                         on_press: about.open()
@@ -260,6 +262,10 @@
                 anchor_x: 'center'
                 anchor_y: 'center'
                 padding: 100
+
+                Label:
+                    id: nettest
+                    text: "HERE!"
 
                 VBoxLayout:
 

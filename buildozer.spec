@@ -33,7 +33,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = netifaces,kivy
+requirements = netifaces,twisted,kivy
 
 # (list) Garden requirements
 #garden_requirements =

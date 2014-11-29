@@ -16,6 +16,7 @@ except ImportError:
 import binascii
 import threading
 import logging
+from twisted.internet import protocol
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
@@ -423,8 +424,6 @@ class Device:
     hiqnet_address = None
     network_info = NetworkInfo.autodetect()
     manager = None
-    udpserver = None
-    tcpserver = None
 
     def __init__(self, name, hiqnet_address):
         self.manager = DeviceManager(name)
@@ -446,45 +445,9 @@ class Device:
         # FIXME: look for address_used reply messages and renegotiate if found
         return requested_address
 
-    def start_server(self):
-        """
-        Start UDP and TCP servers listening for HiQnet messages on the network
-        """
-        socketserver.UDPServer.allow_reuse_address = True
-        socketserver.TCPServer.allow_reuse_address = True
-
-        self.udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', IP_PORT), UDPHandler)
-        self.tcpserver = socketserver.ThreadingTCPServer((self.network_info.ip_address, IP_PORT),
-                                                         TCPHandler)
-
-        # TODO: receive meter messages
-        # meterserver = socketserver.ThreadingUDPServer((self.network_info.ip_address, '3333'), meterHandler)
-
-        udpthread = threading.Thread(target=self.udpserver.serve_forever)
-        tcpthread = threading.Thread(target=self.tcpserver.serve_forever)
-
-        udpthread.start()
-        tcpthread.start()
-        logging.info("HiQnet: Servers started:")
-        logging.info("HiQnet: UDP: " + udpthread.name)
-        logging.info("HiQnet: TCP: " + tcpthread.name)
-
-    def stop_server(self):
-        """
-        Stop UDP and TCP servers
-        """
-        logging.info("HiQnet: Terminating servers:")
-        if self.udpserver:
-            self.udpserver.shutdown()
-            self.udpserver.server_close()
-            logging.info("HiQnet: UDP server shut down")
-        if self.tcpserver:
-            self.tcpserver.shutdown()
-            self.tcpserver.server_close()
-            logging.info("HiQnet: TCP server shut down")
-
 
 class Connection:
+    # FIXME: use twisted
     udpsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -500,29 +463,35 @@ class Connection:
             self.udpsock.sendto(bytes(message), (destination, IP_PORT))
 
 
-class TCPHandler(socketserver.BaseRequestHandler):
-    """
-    Handle TCP requests
-    """
-
-    def handle(self):
-        # self.request is the TCP socket connected to the client
-        data = self.request.recv(1024).strip()
-        print("Received TCP: ")
-        print(binascii.hexlify(data))
-
-        # TODO: Process more :)
-
-
-class UDPHandler(socketserver.BaseRequestHandler):
-    """
-    Handle UDP requests
-    """
-
-    def handle(self):
-        data = self.request[0].strip()
-        s = self.request[1]
-        print("Received UDP: ")
+class HiQnetTCPProtocol(protocol.Protocol):
+    def dataReceived(self, data):
+        print("Received TCP data: ")
         print(binascii.hexlify(data))
 
         # TODO: Process some more :)
+
+
+class HiQnetUDPProtocol(protocol.DatagramProtocol):
+    def __init__(self, app):
+        self.app = app
+
+    def startProtocol(self):
+        self.transport.setBroadcastAllowed(True)
+
+    def datagramReceived(self, data, (host, port)):
+        print("Received UDP data: ")
+        print(binascii.hexlify(data))
+        print("from: ")
+        print(host)
+        print("on port:")
+        print(port)
+
+        # TODO: Process some more :)
+        self.app.handle_message(data)
+
+
+class HiQnetFactory(protocol.Factory):
+    protocol = HiQnetTCPProtocol
+
+    def __init__(self, app):
+        self.app = app
