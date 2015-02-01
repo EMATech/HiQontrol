@@ -8,14 +8,8 @@ import os
 import netifaces
 import socket
 import random
-try:
-    import socketserver
-except ImportError:
-    # noinspection PyPep8Naming,PyUnresolvedReferences
-    import SocketServer as socketserver
 import binascii
-import threading
-import logging
+
 from twisted.internet import protocol
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
@@ -174,14 +168,15 @@ class VirtualDevice:
 
 
 class DeviceManager(VirtualDevice):
-    flags = DEFAULT_FLAG_MASK
-    serial_number = None
-    software_version = None
     """
     Describes a HiQnet device manager
 
     Each device has one and this is always the first virtual device
     """
+    flags = DEFAULT_FLAG_MASK
+    serial_number = None
+    software_version = None
+
     def __init__(self,
                  name_string,
                  class_name=None,
@@ -206,6 +201,9 @@ class DeviceManager(VirtualDevice):
 
 
 class FQHiQnetAddress:
+    """
+    Fully Qualified HiQnet Address
+    """
     def __init__(self,
                  device_address=0,
                  vd_address=b'\x00',  # 8 bits
@@ -228,6 +226,9 @@ class FQHiQnetAddress:
 
 
 class HiQnetMessage:
+    """
+    HiQnet message
+    """
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
@@ -469,6 +470,7 @@ class HiQnetTCPProtocol(protocol.Protocol):
         print(binascii.hexlify(data))
 
         # TODO: Process some more :)
+        self.app.handle_message(data, None, "HiQnet TCP")
 
 
 class HiQnetUDPProtocol(protocol.DatagramProtocol):
@@ -487,7 +489,7 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
         print(port)
 
         # TODO: Process some more :)
-        self.app.handle_message(data)
+        self.app.handle_message(data, host, "HiQnet UDP")
 
 
 class HiQnetFactory(protocol.Factory):

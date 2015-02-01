@@ -16,13 +16,13 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
 # (list) Source files to exclude (let empty to not exclude anything)
-source.exclude_exts = spec, iml, md, txt, yaml
+source.exclude_exts = spec,iml,md,txt,yaml,json
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin
+source.exclude_dirs = assets,bin,doc,proto,tools
 
 # (list) List of exclusions using pattern matching
-source.exclude_patterns = tools/*, client.py, com.py, decoding, meter.py
+source.exclude_patterns = settings.json
 
 # (str) Application versioning (method 1)
 version.regex = __version__ = ['"](.*)['"]
@@ -59,25 +59,25 @@ fullscreen = 1
 android.permissions = INTERNET
 
 # (int) Android API to use
-android.api = 19
+#android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
 #android.minapi = 8
 
 # (int) Android SDK version to use
-android.sdk = 21
+#android.sdk = 21
 
 # (str) Android NDK version to use
-android.ndk = 10c
+#android.ndk = r10c
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
-android.private_storage = False
+#android.private_storage = False
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-android.ndk_path = /opt/android-ndk
+#android.ndk_path = /opt/android-ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-android.sdk_path = /opt/android-sdk
+#android.sdk_path = /opt/android-sdk
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #android.p4a_dir =
@@ -100,7 +100,7 @@ android.sdk_path = /opt/android-sdk
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.
-android.branch = master
+#android.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -144,7 +144,7 @@ android.branch = master
 [buildozer]
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
-log_level = 1
+log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1

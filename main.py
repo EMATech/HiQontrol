@@ -1,5 +1,10 @@
-import hiqnet
+# -*- coding: utf-8 -*-
+
+__author__ = 'Raphaël Doursenaud'
+
 import re
+import binascii
+
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
@@ -10,12 +15,16 @@ from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
 from kivy.uix.listview import CompositeListItem, ListItemButton
 from kivy.support import install_twisted_reactor
+
+from hiqnet import hiqnet
+from soundcraft import soundcraft
+
 install_twisted_reactor()
 from twisted.internet import reactor
 
 # FIXME: this should not be hardcoded but autodetected
-SI_COMPACT_16_IP = '192.168.1.6'
-SI_COMPACT_16_DEVICE_ADDRESS = 1619  # 0x653
+SI_COMPACT_16_IP = '192.168.1.53'
+SI_COMPACT_16_DEVICE_ADDRESS = 27904  # 0x653
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 
 APPNAME = 'HiQontrol'
@@ -38,7 +47,7 @@ class ListLocateButton(ListItemButton):
 
     def blink_start(self):
         self.background_color = [1, 0, 0, 1]
-        Clock.schedule_interval(self.change_color, 1 / 2)
+        Clock.schedule_interval(self.change_color, .5)
         self.blinking = True
 
     def blink_stop(self):
@@ -116,10 +125,12 @@ class HiQontrolApp(App):
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)
     control = None
+    screen = None
 
     def build(self):
         reactor.listenTCP(hiqnet.IP_PORT, hiqnet.HiQnetFactory(self))
         reactor.listenUDP(hiqnet.IP_PORT, hiqnet.HiQnetUDPProtocol(self))
+        reactor.listenUDP(soundcraft.VUMETER_IP_PORT, soundcraft.VuMeterUDPPRotocol(self))
         self.title = APPNAME
         self.icon = 'assets/icon.png'
         self.screen = HiQontrol(list=self.populate())
@@ -129,23 +140,13 @@ class HiQontrolApp(App):
         """
         Initialize device and network communications
         """
-        #self.device.start_server()
         self.control = Control(self.device)
 
     def on_pause(self):
         """
         Enable pause mode
         """
-        #self.device.stop_server()
         return True
-
-    def on_resume(self):
-        #self.device.start_server()
-        pass
-
-    def on_stop(self):
-        #self.device.stop_server()
-        pass
 
     def store_needs_udate(self):
         self.store_needs_update = True
@@ -156,10 +157,8 @@ class HiQontrolApp(App):
             self.datastore.put('device_name', value=name)
             self.datastore.put('device_address', value=int(address))
             Logger.info(APPNAME + ": Store updated, reloading device")
-            #self.device.stop_server()
             self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
                                         self.datastore.get('device_address')['value'])
-            #self.device.start_server()
             self.control = Control(self.device)
             self.store_needs_update = False
 
@@ -242,8 +241,16 @@ class HiQontrolApp(App):
 
         return dict_adapter
 
-    def handle_message(self, data):
-        self.screen.nettest.text = data
+    def handle_message(self, data, host, protocol):
+        """
+        Handle messages received thru twisted servers
+
+        Only display it on screen for debugging right now
+
+        :param data:
+        :return:
+        """
+        self.screen.debug.text = protocol + '(' + str(host) + ')' + binascii.hexlify(data)
 
 if __name__ == '__main__':
     HiQontrolApp().run()

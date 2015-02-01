@@ -2,9 +2,11 @@
 # *- coding: utf-8 -*
 __author__ = 'Raphaël Doursenaud'
 
-import hiqnet
 import logging
 import socket
+
+from hiqnet import hiqnet
+
 try:
     import socketserver
 except ImportError:
