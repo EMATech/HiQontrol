@@ -85,12 +85,16 @@ class HiQNetAddressInput(TextInput):
 class Control():
     locate = False
     source_device = None
+    udp_transport = None
+    tcp_transport = None
 
-    def __init__(self, source_device):
+    def __init__(self, source_device, udp_transport, tcp_transport):
         self.source_device = source_device
+        self.udp_transport = udp_transport
+        self.tcp_transport = tcp_transport
 
     def init(self, hiqnet_dest):
-        c = hiqnet.Connection()
+        c = hiqnet.Connection(self.udp_transport, self.tcp_transport)
         source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device.hiqnet_address)
         destination_address = hiqnet.FQHiQnetAddress(hiqnet_dest)
         message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
@@ -127,6 +131,8 @@ class HiQontrolApp(App):
         datastore.put('device_address', value=device_address)
     control = None
     screen = None
+    udp_transport = None
+    tcp_transport = None
 
     def build(self):
         reactor.listenTCP(hiqnet.IP_PORT, hiqnet.HiQnetFactory(self))
@@ -141,7 +147,7 @@ class HiQontrolApp(App):
         """
         Initialize device and network communications
         """
-        self.control = Control(self.device)
+        self.control = Control(self.device, self.udp_transport, self.tcp_transport)
 
     def on_pause(self):
         """
@@ -160,7 +166,7 @@ class HiQontrolApp(App):
             Logger.info(APPNAME + ": Store updated, reloading device")
             self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
                                         self.datastore.get('device_address')['value'])
-            self.control = Control(self.device)
+            self.control = Control(self.device, self.udp_transport, self.tcp_transport)
             self.store_needs_update = False
 
     def get_model(self):

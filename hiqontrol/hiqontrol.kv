@@ -86,8 +86,7 @@
                         text: app.get_local_name()
                         multiline: False
                         on_text: app.store_needs_update()
-                        # FIXME: upstream bug? Fatal Python error: (pygame parachute) Segmentation Fault
-                        #on_text_validate: local_hiqnet_address.focus = True
+                        on_text_validate: local_hiqnet_address.focus = True
 
                     SettingsLabel:
                         text: "HiQnet Address:"

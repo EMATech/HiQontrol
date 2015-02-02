@@ -448,29 +448,35 @@ class Device:
 
 
 class Connection:
-    # FIXME: use twisted
-    udpsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    udp_transport = None
+    tcp_transport = None
+
+    def __init__(self, udp_transport, tcp_transport):
+        self.udp_transport = udp_transport
+        self.tcp_transport = tcp_transport
 
     def sendto(self, message, destination):
         if struct.unpack('!H', message.flags)[0] & struct.unpack('!H', FLAG_GUAR)[0]:
             # Send TCP message if the Guaranteed flag is set
-            self.tcpsock.connect((destination, IP_PORT))
-            self.tcpsock.sendall(bytes(message))
+            self.tcp_transport.write(bytes(message), (destination, IP_PORT))
         else:
-            if destination == '<broadcast>':
-                # We need to set some socket options for broadcasting
-                self.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            self.udpsock.sendto(bytes(message), (destination, IP_PORT))
+            self.udp_transport.write(bytes(message), (destination, IP_PORT))
 
 
 class HiQnetTCPProtocol(protocol.Protocol):
+    def startProtocol(self):
+        """
+        Called after protocol started listening
+        :return:
+        """
+        self.factory.app.tcp_transport = self.transport
+
     def dataReceived(self, data):
         print("Received TCP data: ")
         print(binascii.hexlify(data))
 
         # TODO: Process some more :)
-        self.app.handle_message(data, None, "HiQnet TCP")
+        self.factory.app.handle_message(data, None, "HiQnet TCP")
 
 
 class HiQnetUDPProtocol(protocol.DatagramProtocol):
@@ -478,7 +484,12 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
         self.app = app
 
     def startProtocol(self):
-        self.transport.setBroadcastAllowed(True)
+        """
+        Called after protocol started listening
+        :return:
+        """
+        self.transport.setBroadcastAllowed(True)  # Some messages needs to be broadcasted
+        self.app.udp_transport = self.transport
 
     def datagramReceived(self, data, (host, port)):
         print("Received UDP data: ")
