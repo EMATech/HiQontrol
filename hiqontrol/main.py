@@ -6,6 +6,7 @@ import re
 import binascii
 
 from kivy.app import App
+
 from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.adapters.dictadapter import DictAdapter

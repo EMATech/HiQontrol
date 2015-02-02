@@ -10,7 +10,7 @@ package.name = hiqontrol
 package.domain = fr.ematech
 
 # (str) Source code where the main.py live
-source.dir = .
+source.dir = hiqontrol
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas
@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas
 source.exclude_exts = spec,iml,md,txt,yaml,json
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = assets,bin,doc,proto,tools
+#source.exclude_dirs =
 
 # (list) List of exclusions using pattern matching
 source.exclude_patterns = settings.json

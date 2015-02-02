@@ -5,7 +5,8 @@ __author__ = 'Raphaël Doursenaud'
 import logging
 import socket
 
-from hiqnet import hiqnet
+from hiqontrol.hiqnet import hiqnet
+
 
 try:
     import socketserver
