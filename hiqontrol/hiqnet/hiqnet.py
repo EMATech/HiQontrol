@@ -131,10 +131,11 @@ class NetworkInfo:
     def autodetect(cls):
         """
         Get infos from the interface
-        we assume that the second network device is the one we want.
-        The first being the local loopback.
+
+        We assume that interface to the default gateway is the one we want
         """
-        iface = netifaces.interfaces()[1]
+        # FIXME: this may fail
+        iface = netifaces.gateways()['default'][netifaces.AF_INET][1]
         addrs = netifaces.ifaddresses(iface)
         mac_address = addrs[netifaces.AF_LINK][0]['addr']
         try:
