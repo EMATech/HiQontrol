@@ -8,14 +8,9 @@ import os
 import netifaces
 import socket
 import random
-try:
-    import socketserver
-except ImportError:
-    # noinspection PyPep8Naming,PyUnresolvedReferences
-    import SocketServer as socketserver
 import binascii
-import threading
-import logging
+
+from twisted.internet import protocol
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
@@ -136,10 +131,11 @@ class NetworkInfo:
     def autodetect(cls):
         """
         Get infos from the interface
-        we assume that the second network device is the one we want.
-        The first being the local loopback.
+
+        We assume that interface to the default gateway is the one we want
         """
-        iface = netifaces.interfaces()[1]
+        # FIXME: this may fail
+        iface = netifaces.gateways()['default'][netifaces.AF_INET][1]
         addrs = netifaces.ifaddresses(iface)
         mac_address = addrs[netifaces.AF_LINK][0]['addr']
         try:
@@ -173,14 +169,15 @@ class VirtualDevice:
 
 
 class DeviceManager(VirtualDevice):
-    flags = DEFAULT_FLAG_MASK
-    serial_number = None
-    software_version = None
     """
     Describes a HiQnet device manager
 
     Each device has one and this is always the first virtual device
     """
+    flags = DEFAULT_FLAG_MASK
+    serial_number = None
+    software_version = None
+
     def __init__(self,
                  name_string,
                  class_name=None,
@@ -205,6 +202,9 @@ class DeviceManager(VirtualDevice):
 
 
 class FQHiQnetAddress:
+    """
+    Fully Qualified HiQnet Address
+    """
     def __init__(self,
                  device_address=0,
                  vd_address=b'\x00',  # 8 bits
@@ -227,6 +227,9 @@ class FQHiQnetAddress:
 
 
 class HiQnetMessage:
+    """
+    HiQnet message
+    """
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
@@ -423,8 +426,6 @@ class Device:
     hiqnet_address = None
     network_info = NetworkInfo.autodetect()
     manager = None
-    udpserver = None
-    tcpserver = None
 
     def __init__(self, name, hiqnet_address):
         self.manager = DeviceManager(name)
@@ -446,83 +447,65 @@ class Device:
         # FIXME: look for address_used reply messages and renegotiate if found
         return requested_address
 
-    def start_server(self):
-        """
-        Start UDP and TCP servers listening for HiQnet messages on the network
-        """
-        socketserver.UDPServer.allow_reuse_address = True
-        socketserver.TCPServer.allow_reuse_address = True
-
-        self.udpserver = socketserver.ThreadingUDPServer(('255.255.255.255', IP_PORT), UDPHandler)
-        self.tcpserver = socketserver.ThreadingTCPServer((self.network_info.ip_address, IP_PORT),
-                                                         TCPHandler)
-
-        # TODO: receive meter messages
-        # meterserver = socketserver.ThreadingUDPServer((self.network_info.ip_address, '3333'), meterHandler)
-
-        udpthread = threading.Thread(target=self.udpserver.serve_forever)
-        tcpthread = threading.Thread(target=self.tcpserver.serve_forever)
-
-        udpthread.start()
-        tcpthread.start()
-        logging.info("HiQnet: Servers started:")
-        logging.info("HiQnet: UDP: " + udpthread.name)
-        logging.info("HiQnet: TCP: " + tcpthread.name)
-
-    def stop_server(self):
-        """
-        Stop UDP and TCP servers
-        """
-        logging.info("HiQnet: Terminating servers:")
-        if self.udpserver:
-            self.udpserver.shutdown()
-            self.udpserver.server_close()
-            logging.info("HiQnet: UDP server shut down")
-        if self.tcpserver:
-            self.tcpserver.shutdown()
-            self.tcpserver.server_close()
-            logging.info("HiQnet: TCP server shut down")
-
 
 class Connection:
-    udpsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    udp_transport = None
+    tcp_transport = None
+
+    def __init__(self, udp_transport, tcp_transport):
+        self.udp_transport = udp_transport
+        self.tcp_transport = tcp_transport
 
     def sendto(self, message, destination):
         if struct.unpack('!H', message.flags)[0] & struct.unpack('!H', FLAG_GUAR)[0]:
             # Send TCP message if the Guaranteed flag is set
-            self.tcpsock.connect((destination, IP_PORT))
-            self.tcpsock.sendall(bytes(message))
+            self.tcp_transport.write(bytes(message), (destination, IP_PORT))
         else:
-            if destination == '<broadcast>':
-                # We need to set some socket options for broadcasting
-                self.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            self.udpsock.sendto(bytes(message), (destination, IP_PORT))
+            self.udp_transport.write(bytes(message), (destination, IP_PORT))
 
 
-class TCPHandler(socketserver.BaseRequestHandler):
-    """
-    Handle TCP requests
-    """
+class HiQnetTCPProtocol(protocol.Protocol):
+    def startProtocol(self):
+        """
+        Called after protocol started listening
+        :return:
+        """
+        self.factory.app.tcp_transport = self.transport
 
-    def handle(self):
-        # self.request is the TCP socket connected to the client
-        data = self.request.recv(1024).strip()
-        print("Received TCP: ")
-        print(binascii.hexlify(data))
-
-        # TODO: Process more :)
-
-
-class UDPHandler(socketserver.BaseRequestHandler):
-    """
-    Handle UDP requests
-    """
-
-    def handle(self):
-        data = self.request[0].strip()
-        s = self.request[1]
-        print("Received UDP: ")
+    def dataReceived(self, data):
+        print("Received TCP data: ")
         print(binascii.hexlify(data))
 
         # TODO: Process some more :)
+        self.factory.app.handle_message(data, None, "HiQnet TCP")
+
+
+class HiQnetUDPProtocol(protocol.DatagramProtocol):
+    def __init__(self, app):
+        self.app = app
+
+    def startProtocol(self):
+        """
+        Called after protocol started listening
+        :return:
+        """
+        self.transport.setBroadcastAllowed(True)  # Some messages needs to be broadcasted
+        self.app.udp_transport = self.transport
+
+    def datagramReceived(self, data, (host, port)):
+        print("Received UDP data: ")
+        print(binascii.hexlify(data))
+        print("from: ")
+        print(host)
+        print("on port:")
+        print(port)
+
+        # TODO: Process some more :)
+        self.app.handle_message(data, host, "HiQnet UDP")
+
+
+class HiQnetFactory(protocol.Factory):
+    protocol = HiQnetTCPProtocol
+
+    def __init__(self, app):
+        self.app = app
