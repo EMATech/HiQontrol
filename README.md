@@ -8,9 +8,17 @@ Status
 
 Work In Progress, [Proof of Concept](https://github.com/EMATech/HiQontrol/releases/tag/v0.0.1) available for Android
 
+Dependencies
+============
+
+Python 2 or 3
+[Kivy](kivy.org)
+netifaces
+twisted
+
 License
 =======
-Copyright (C) 2014 Raphaël Doursenaud <rdoursenaud@free.fr>
+Copyright (C) 2014-2015 Raphaël Doursenaud <rdoursenaud@free.fr>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
