@@ -272,7 +272,7 @@ class FullyQualifiedAddress:
         """
         if devicevdobject:
             repr(devicevdobject)
-            self.device_address = struct.unpack('!H', devicevdobject[0:2])
+            self.device_address = struct.unpack('!H', devicevdobject[0:2])[0]
             # TODO: make vd_address and object_address int rather than byte arrays
             self.vd_address = devicevdobject[2]
             self.object_address = devicevdobject[3:6]
@@ -593,9 +593,10 @@ class Message:
         self._build_optional_headers()
         self._compute_headerlen()
         self._compute_messagelen()
-        self.header = self.version + self.headerlen + self.messagelen \
+        self.header = bytes(self.version) + bytes(self.headerlen) + bytes(self.messagelen) \
             + bytes(self.source_address) + bytes(self.destination_address) \
-            + self.message_id + self.flags + self.hop_counter + self.sequence_number + self.optional_headers
+            + bytes(self.message_id) + bytes(self.flags) + bytes(self.hop_counter) \
+            + bytes(self.sequence_number) + bytes(self.optional_headers)
 
     def __bytes__(self):
         """Get the message as bytes."""
@@ -696,9 +697,10 @@ class TCPProtocol(protocol.Protocol):
         # FIXME: debugging output should go into a logger
         print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
+        message = Message(data)
 
         # TODO: Process some more :)
-        self.factory.app.handle_message(data, None, "HiQnet TCP")
+        self.factory.app.handle_message(message, None, "HiQnet TCP")
 
 
 class UDPProtocol(protocol.DatagramProtocol):
@@ -729,10 +731,9 @@ class UDPProtocol(protocol.DatagramProtocol):
         print(":", end="")
         print(port)
         message = Message(data)
-        print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
-        self.app.handle_message(data, host, "HiQnet UDP")
+        self.app.handle_message(message, host, "HiQnet UDP")
 
 
 class Factory(protocol.Factory):

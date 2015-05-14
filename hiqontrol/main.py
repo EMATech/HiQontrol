@@ -249,16 +249,17 @@ class HiQontrolApp(App):
 
         return dict_adapter
 
-    def handle_message(self, data, host, protocol):
+    def handle_message(self, message, host, protocol):
         """
         Handle messages received thru twisted servers
 
         Only display it on screen for debugging right now
 
         :param data:
+        :type data: hiqnet.Message
         :return:
         """
-        self.screen.debug.text = protocol + '(' + str(host) + ')' + binascii.hexlify(data)
+        self.screen.debug.text = protocol + '(' + str(host) + ')' + binascii.hexlify(bytes(message))
 
 if __name__ == '__main__':
     HiQontrolApp().run()
