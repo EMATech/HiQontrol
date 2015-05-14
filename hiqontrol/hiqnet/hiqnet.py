@@ -248,21 +248,41 @@ class DeviceManager(VirtualDevice):
 
 class FullyQualifiedAddress:
     """Fully Qualified HiQnet Address."""
+    device_address = None
+    vd_address = None
+    object_address = None
+
     def __init__(self,
-                 device_address=0,
+                 devicevdobject=None,
+                 device_address=None,
                  vd_address=b'\x00',
                  object_address=b'\x00\x00\x00',
                  ):
         """Build a Fully Qualified HiQnet Address.
 
-        :type device_address: int between 1 and 65535 Device address
-        :type vd_address: bytearray 8 bits Virtual device address
-        :type object_address: bytearray 24 bits Object address
+        :param devicevdobject: Full binary address
+        :type devicevdobject: bytearray
+            16 bits = Device address
+            8 bits = VD address
+            24 bits = Object address
+        :param device_address: Device address
+        :type device_address: int between 1 and 65535
+        :param vd_address:  Virtual device address
+        :type vd_address: bytearray 8 bits
+        :param object_address:  Object address
+        :type object_address: bytearray 24 bits
         """
-        self.device_address = device_address
-        # TODO: make vd_address and object_address int rather than byte arrays
-        self.vd_address = vd_address
-        self.object_address = object_address
+        if devicevdobject:
+            repr(devicevdobject)
+            self.device_address = struct.unpack('!H', devicevdobject[0:2])
+            # TODO: make vd_address and object_address int rather than byte arrays
+            self.vd_address = devicevdobject[2]
+            self.object_address = devicevdobject[3:6]
+        else:
+            self.device_address = device_address
+            # TODO: make vd_address and object_address int rather than byte arrays
+            self.vd_address = vd_address
+            self.object_address = object_address
 
     @classmethod
     def broadcast_address(cls):
@@ -275,6 +295,7 @@ class FullyQualifiedAddress:
 
     def __bytes__(self):
         """Get the address as bytes"""
+        # TODO: make vd_address and object_address int rather than byte arrays
         return struct.pack('!H', self.device_address) + self.vd_address + self.object_address
 
     def __str__(self):
@@ -356,7 +377,7 @@ class Message:
 
     payload = b''  # Placeholder, filled later, depends on the message
 
-    def __init__(self, source, destination):
+    def __init__(self, message=None, source=None, destination=None):
         """Initiate an HiQnet message from source to destination.
 
         :param source: Source of the message
@@ -365,9 +386,53 @@ class Message:
         :type destination: FullyQualifiedAddress
         :return:
         """
-        self.source_address = source
-        self.destination_address = destination
-        self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
+        if message:
+            self.decode_message(message)
+        else:
+            self.source_address = source
+            self.destination_address = destination
+            self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
+
+    def decode_message(self, message):
+        """Decodes a binary message.
+
+        :param message: The binary message to decode
+        """
+        self.set_version(struct.unpack('!B', message[0])[0])
+        self.set_headerlen(struct.unpack('!B', message[1])[0])
+        if len(message) < self.headerlen:
+            raise BufferError("Message is smaller than it's header length")
+        self.set_messagelen(struct.unpack('!L', message[2:6])[0])
+        if len(message) != self.messagelen:
+            raise BufferError("Message length header and actual length missmatch")
+        self.source_address = FullyQualifiedAddress(devicevdobject=message[6:12])
+        self.destination_address = FullyQualifiedAddress(devicevdobject=message[12:18])
+        self.message_id = message[18:20]  # TODO: decode
+        self.flags = message[20:22]  # TODO: decode
+        self.hop_counter = struct.unpack('!B', message[22])[0]
+        self.sequence_number = struct.unpack('!H', message[23:25])[0]
+        if self.headerlen > 25:
+            # Optional Headers are present, check the flags
+            raise NotImplementedError
+        self.payload = message[self.headerlen:self.messagelen]
+        # TODO: decode payload by message type
+
+    def set_version(self, version):
+        """Set the version."""
+        if not 0 < version <= 2:
+            raise ValueError("HiQnet version can only be 1 or 2")
+        self.version = version
+
+    def set_headerlen(self, headerlen):
+        """Set the header length"""
+        if headerlen < MIN_HEADER_LEN:
+            raise ValueError("The header can't be smaller than " + MIN_HEADER_LEN)
+        self.headerlen = headerlen
+
+    def set_messagelen(self, messagelen):
+        if messagelen < self.headerlen or messagelen < MIN_HEADER_LEN:
+            raise ValueError("Message can't be smaller than the header")
+        self.messagelen = messagelen
 
     def disco_info(self, device):
         """Build a Discovery Information message.
@@ -614,6 +679,7 @@ class TCPProtocol(protocol.Protocol):
         :param data: Received binary data
         :type data: bytearray
         """
+        # FIXME: debugging output should go into a logger
         print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
 
@@ -640,12 +706,16 @@ class UDPProtocol(protocol.DatagramProtocol):
         :type addr: tuple
         """
         (host, port) = addr
+
+        # FIXME: debugging output should go into a logger
         print("Received HiQnet UDP data: ")
         print(binascii.hexlify(data))
         print("from ", end="")
         print(host, end="")
         print(":", end="")
         print(port)
+        message = Message(data)
+        print(vars(message))  ## DEBUG
 
         # TODO: Process some more :)
         self.app.handle_message(data, host, "HiQnet UDP")

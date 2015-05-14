@@ -21,6 +21,8 @@ class VuMeterUDPPRotocol(hiqnet.UDPProtocol):
         :type addr: tuple
         """
         (host, port) = addr
+
+        # FIXME: debugging output should go into a logger
         print("Received VU meter UDP data: ")
         print(binascii.hexlify(data))
         print("from ", end="")

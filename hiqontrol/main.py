@@ -97,7 +97,7 @@ class Control:
     def init(self, hiqnet_dest):
         c = hiqnet.Connection(self.udp_transport, self.tcp_transport)
         source_address = hiqnet.FullyQualifiedAddress(device_address=self.source_device._hiqnet_address)
-        destination_address = hiqnet.FullyQualifiedAddress(hiqnet_dest)
+        destination_address = hiqnet.FullyQualifiedAddress(device_address=hiqnet_dest)
         message = hiqnet.Message(source=source_address, destination=destination_address)
         return c, message
 
