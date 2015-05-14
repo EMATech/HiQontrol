@@ -245,7 +245,7 @@ class DeviceManager(VirtualDevice):
         self.software_version = software_version
 
 
-class FQHiQnetAddress:
+class FullyQualifiedAddress:
     """Fully Qualified HiQnet Address."""
     def __init__(self,
                  device_address=0,
@@ -281,7 +281,7 @@ class FQHiQnetAddress:
         return self.__bytes__()
 
 
-class HiQnetMessage:
+class Message:
     """HiQnet message"""
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -303,12 +303,12 @@ class HiQnetMessage:
     The Message Length is the size in bytes of the entire message - from the
     ‘Version’ field through to the last byte of the payload.
     """
-    source_address = FQHiQnetAddress()  # 6 byte (48 bits)
+    source_address = FullyQualifiedAddress()  # 6 byte (48 bits)
     """
     The Source Address specifies the HiQnet address where the message has come
     from; this is often used by the recipient for sending back reply messages.
     """
-    destination_address = FQHiQnetAddress()  # 6 byte (48 bits)
+    destination_address = FullyQualifiedAddress()  # 6 byte (48 bits)
     """The Destination Address specifies where the message is to be delivered to."""
     message_id = b'\x00\x00'  # 2 bytes
     """
@@ -359,9 +359,9 @@ class HiQnetMessage:
         """Initiate an HiQnet message from source to destination.
 
         :param source: Source of the message
-        :type source: FQHiQnetAddress
+        :type source: FullyQualifiedAddress
         :param destination: destination of the message
-        :type destination: FQHiQnetAddress
+        :type destination: FullyQualifiedAddress
         :return:
         """
         self.source_address = source
@@ -557,8 +557,8 @@ class Device:
         """
         requested_address = random.randrange(1, 65535)
         # connection = Connection()
-        # message = HiQnetMessage(source=FQHiQnetAddress(device_address=0),
-        #                        destination=FQHiQnetAddress.broadcast_address())
+        # message = Message(source=FullyQualifiedAddress(device_address=0),
+        #                        destination=FullyQualifiedAddress.broadcast_address())
         # message.request_address(self, requested_address)
         # connection.sendto('<broadcast>')
         # FIXME: look for address_used reply messages and renegotiate if found
@@ -589,7 +589,7 @@ class Connection:
         """Send message to the destination.
 
         :param message: Message to send.
-        :type message: HiQnetMessage
+        :type message: Message
         :param destination: Destination IPv4 address
         :type destination: str
         """
@@ -601,7 +601,7 @@ class Connection:
 
 
 # noinspection PyClassHasNoInit
-class HiQnetTCPProtocol(protocol.Protocol):
+class TCPProtocol(protocol.Protocol):
     """HiQnet Twisted TCP protocol."""
     def startProtocol(self):
         """Called after protocol started listening."""
@@ -609,14 +609,14 @@ class HiQnetTCPProtocol(protocol.Protocol):
 
     def dataReceived(self, data):
         """Called when data is received."""
-        print("Received TCP data: ")
+        print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
 
         # TODO: Process some more :)
         self.factory.app.handle_message(data, None, "HiQnet TCP")
 
 
-class HiQnetUDPProtocol(protocol.DatagramProtocol):
+class UDPProtocol(protocol.DatagramProtocol):
     """HiQnet Twisted UDP protocol."""
     def __init__(self, app):
         self.app = app
@@ -629,7 +629,7 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
     def datagramReceived(self, data, addr):
         """Called when data is received"""
         (host, port) = addr
-        print("Received UDP data: ")
+        print("Received HiQnet UDP data: ")
         print(binascii.hexlify(data))
         print("from: ")
         print(host)
@@ -640,10 +640,10 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
         self.app.handle_message(data, host, "HiQnet UDP")
 
 
-class HiQnetFactory(protocol.Factory):
+class Factory(protocol.Factory):
     """HiQnet Twisted Factory."""
 
-    protocol = HiQnetTCPProtocol
+    protocol = TCPProtocol
 
     def __init__(self, app):
         self.app = app

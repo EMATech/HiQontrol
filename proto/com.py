@@ -48,9 +48,9 @@ def init_logging():
 
 def hello(source_device, destination_device):
     c = hiqnet.Connection()
-    source_address = hiqnet.FQHiQnetAddress(device_address=source_device.hiqnet_address)
-    destination_address = hiqnet.FQHiQnetAddress(device_address=destination_device)
-    message = hiqnet.HiQnetMessage(source=source_address, destination=hiqnet.FQHiQnetAddress.broadcast_address())
+    source_address = hiqnet.FullyQualifiedAddress(device_address=source_device.hiqnet_address)
+    destination_address = hiqnet.FullyQualifiedAddress(device_address=destination_device)
+    message = hiqnet.Message(source=source_address, destination=hiqnet.FullyQualifiedAddress.broadcast_address())
     message.disco_info(device=source_device)
     c.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     c.sendto(message, '<broadcast>')
@@ -60,12 +60,12 @@ def hello(source_device, destination_device):
     c.sendto(message, '<broadcast>')
     logger.info("Sent disco_info")
 
-    # message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+    # message = hiqnet.Message(source=source_address, destination=destination_address)
     # message.LocateOnSI_COMPACT_16_SERIAL)
     # c.sendto(message, SI_COMPACT_16_IP)
     # logger.info("Sent locate ON")
     #
-    # message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+    # message = hiqnet.Message(source=source_address, destination=destination_address)
     # message.hello(source_device)
     # c.sendto(message, SI_COMPACT_16_IP)
     # logger.info("Sent hello")

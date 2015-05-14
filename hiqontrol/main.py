@@ -96,9 +96,9 @@ class Control:
 
     def init(self, hiqnet_dest):
         c = hiqnet.Connection(self.udp_transport, self.tcp_transport)
-        source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device._hiqnet_address)
-        destination_address = hiqnet.FQHiQnetAddress(hiqnet_dest)
-        message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
+        source_address = hiqnet.FullyQualifiedAddress(device_address=self.source_device._hiqnet_address)
+        destination_address = hiqnet.FullyQualifiedAddress(hiqnet_dest)
+        message = hiqnet.Message(source=source_address, destination=destination_address)
         return c, message
 
     def locate_toggle(self, hiqnet_dest, ip_dest, serial_dest):
@@ -136,8 +136,8 @@ class HiQontrolApp(App):
     tcp_transport = None
 
     def build(self):
-        reactor.listenTCP(hiqnet.IP_PORT, hiqnet.HiQnetFactory(self))
-        reactor.listenUDP(hiqnet.IP_PORT, hiqnet.HiQnetUDPProtocol(self))
+        reactor.listenTCP(hiqnet.IP_PORT, hiqnet.Factory(self))
+        reactor.listenUDP(hiqnet.IP_PORT, hiqnet.UDPProtocol(self))
         reactor.listenUDP(soundcraft.VUMETER_IP_PORT, soundcraft.VuMeterUDPPRotocol(self))
         self.title = APPNAME
         self.icon = 'assets/icon.png'
