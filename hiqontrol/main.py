@@ -55,6 +55,7 @@ class ListLocateButton(ListItemButton):
         Clock.unschedule(self.change_color)
         self.blinking = False
 
+    # noinspection PyUnusedLocal
     def change_color(self, *args):
         self.background_color = [
             int(not bool(self.background_color[0])),
@@ -82,7 +83,7 @@ class HiQNetAddressInput(TextInput):
         return super(HiQNetAddressInput, self).insert_text(s, from_undo=from_undo)
 
 
-class Control():
+class Control:
     locate = False
     source_device = None
     udp_transport = None

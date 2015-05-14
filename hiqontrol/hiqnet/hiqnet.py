@@ -146,6 +146,7 @@ class NetworkInfo:
         except AttributeError:
             # We are running Python 3
             try:
+                # noinspection PyArgumentList
                 bytes(mac_address, 'ascii')
             except UnicodeDecodeError:
                 # We got Garbage (Android bug?), let's default to something sane
@@ -317,6 +318,7 @@ class HiQnetMessage:
             serial_number = bytes(device.manager.serial_number.decode('ascii'))
         except AttributeError:
             # We are running Python 3
+            # noinspection PyArgumentList
             serial_number = bytes(device.manager.serial_number, 'ascii')
         serial_number = struct.pack('!16s', serial_number)  # May use utf-16-be == UCS-2
         max_message_size = struct.pack('!I', 65535)  # FIXME: should really be the server's buffer size
@@ -464,6 +466,7 @@ class Connection:
             self.udp_transport.write(bytes(message), (destination, IP_PORT))
 
 
+# noinspection PyClassHasNoInit
 class HiQnetTCPProtocol(protocol.Protocol):
     def startProtocol(self):
         """
