@@ -665,6 +665,7 @@ class Device:
         # message.request_address(self, requested_address)
         # connection.sendto('<broadcast>')
         # FIXME: look for address_used reply messages and renegotiate if found
+        raise NotImplementedError
         return requested_address
 
 
@@ -688,12 +689,12 @@ class Connection:
         self.udp_transport = udp_transport
         self.tcp_transport = tcp_transport
 
-    def sendto(self, message, destination):
+    def sendto(self, message, destination='<broadcast>'):
         """Send message to the destination.
 
         :param message: Message to send
         :type message: Message
-        :param destination: Destination IPv4 address
+        :param destination: Destination IPv4 address or '<broadcast>'
         :type destination: str
         """
         if message.flags.guaranteed:

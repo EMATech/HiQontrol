@@ -21,8 +21,6 @@ SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x0
 
 # TODO: add configuration for MY_DEVICE* parameters
 MY_DEVICE_NAME = 'HiQontrolCLI'
-# FIXME: this should be assigned automatically
-MY_DEVICE_ADDRESS = 2376
 
 
 def init_logging():
@@ -49,15 +47,16 @@ def init_logging():
 def hello(source_device, destination_device):
     c = hiqnet.Connection()
     source_address = hiqnet.FullyQualifiedAddress(device_address=source_device.hiqnet_address)
-    destination_address = hiqnet.FullyQualifiedAddress(device_address=destination_device)
-    message = hiqnet.Message(source=source_address, destination=hiqnet.FullyQualifiedAddress.broadcast_address())
+    # destination_address = hiqnet.FullyQualifiedAddress(device_address=destination_device)
+    destination_address = hiqnet.FullyQualifiedAddress.broadcast_address()  # Broadcast
+    message = hiqnet.Message(source=source_address, destination=destination_address)
     message.disco_info(device=source_device)
     c.udpsock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    c.sendto(message, '<broadcast>')
-    c.sendto(message, '<broadcast>')
-    c.sendto(message, '<broadcast>')
-    c.sendto(message, '<broadcast>')
-    c.sendto(message, '<broadcast>')
+    c.sendto(message)
+    c.sendto(message)
+    c.sendto(message)
+    c.sendto(message)
+    c.sendto(message)
     logger.info("Sent disco_info")
 
     # message = hiqnet.Message(source=source_address, destination=destination_address)
@@ -73,7 +72,8 @@ def hello(source_device, destination_device):
 if __name__ == '__main__':
     logger = init_logging()
     logger.info("RUN")
-    my_device = hiqnet.Device(MY_DEVICE_NAME, MY_DEVICE_ADDRESS)
+    my_device_address = hiqnet.Device.negotiate_address()
+    my_device = hiqnet.Device(MY_DEVICE_NAME, my_device_address)
     logger.debug(my_device.network_info.mac_address)
     logger.debug(my_device.network_info.ip_address)
     logger.debug(my_device.network_info.subnet_mask)
