@@ -12,7 +12,8 @@ class VuMeterUDPPRotocol(protocol.DatagramProtocol):
     def __init__(self, app):
         self.app = app
 
-    def datagramReceived(self, data, (host, port)):
+    def datagramReceived(self, data, addr):
+        (host, port) = addr
         print("Received VU meter UDP data: ")
         print(binascii.hexlify(data))
         print("from: ")

@@ -492,7 +492,8 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
         self.transport.setBroadcastAllowed(True)  # Some messages needs to be broadcasted
         self.app.udp_transport = self.transport
 
-    def datagramReceived(self, data, (host, port)):
+    def datagramReceived(self, data, addr):
+        (host, port) = addr
         print("Received UDP data: ")
         print(binascii.hexlify(data))
         print("from: ")
