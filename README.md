@@ -11,10 +11,10 @@ Work In Progress, [Proof of Concept](https://github.com/EMATech/HiQontrol/releas
 Dependencies
 ============
 
-Python 2 or 3
-[Kivy](kivy.org)
-netifaces
-twisted
+- Python 2 or 3
+- [Kivy](kivy.org)
+- netifaces
+- twisted
 
 License
 =======
