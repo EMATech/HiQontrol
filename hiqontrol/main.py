@@ -21,8 +21,9 @@ from kivy.support import install_twisted_reactor
 from hiqnet import hiqnet
 from soundcraft import soundcraft
 
-install_twisted_reactor()
-from twisted.internet import reactor
+if __name__ == '__main__':
+    install_twisted_reactor()
+    from twisted.internet import reactor
 
 # FIXME: this should not be hardcoded but autodetected
 SI_COMPACT_16_IP = '192.168.1.53'

@@ -23,7 +23,7 @@ class VuMeterUDPPRotocol(protocol.DatagramProtocol):
     def datagramReceived(self, data, addr):
         """Called when data is received.
 
-        :param data: Receive binary data
+        :param data: Received binary data
         :type data: bytearray
         :param addr: IPv4 address and port of the sender
         :type addr: tuple

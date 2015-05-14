@@ -13,6 +13,15 @@ hiqnet.hiqnet module
     :show-inheritance:
 
 
+hiqnet.flags module
+-------------------
+
+.. automodule:: hiqnet.flags
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 
