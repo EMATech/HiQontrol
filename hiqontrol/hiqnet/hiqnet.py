@@ -76,8 +76,16 @@ MSG_REQEVTLOG            = b'\x01\x2c'
 
 
 class Attribute:
+    """Member variables of the HiQnet architecture.
+
+    Static are basically constants.
+    Instance are variables that are set at device bootup.
+    Instance+Dynamic are regular variables that can change during the life of the device.
+    """
     # FIXME: Use it?
     type = None
+    _data_type = None
+    _value = None
     _allowed_types = [
         'Static',
         'Instance',
@@ -85,13 +93,29 @@ class Attribute:
     ]
 
     def __init__(self, atr_type):
-        if atr_type in self.allowed_types:
+        """Build an attribute.
+
+        :param atr_type:  The attribute type
+        :type atr_type: str
+        :return:
+        """
+        if atr_type in self._allowed_types:
             self.type = atr_type
             return
         raise ValueError
 
+class Object:
+    """HiQnet objects.
+
+    May contain other objects or parameters.
+    """
+
 
 class Parameter:
+    """HiQnet parameters.
+
+    Represents the manipulable elements and their attributes.
+    """
     data_type = None  # STATIC FIXME: needs doc
     name_string = ''  # Instance+Dynamic
     minimum_value = None  # Depends on data_type
@@ -106,9 +130,7 @@ class Parameter:
 
 
 class NetworkInfo:
-    """
-    IPv4 Network informations
-    """
+    """IPv4 network informations."""
     mac_address = None
     dhcp = True
     ip_address = None
@@ -121,6 +143,20 @@ class NetworkInfo:
                  ip_address,
                  subnet_mask,
                  gateway_address='0.0.0.0'):
+        """Network information from a device.
+
+        :param mac_address: MAC address
+        :type mac_address: str
+        :param dhcp: Address obtained by DHCP
+        :type dhcp: bool
+        :param ip_address: IPv4 address
+        :type ip_address: str
+        :param subnet_mask: IPv4 network mask
+        :type subnet_mask: str
+        :param gateway_address: IPv4 gateway address
+        :type gateway_address: str
+        :return:
+        """
         self.mac_address = mac_address
         self.dhcp = dhcp
         self.gateway_address = gateway_address
@@ -129,10 +165,12 @@ class NetworkInfo:
 
     @classmethod
     def autodetect(cls):
-        """
-        Get infos from the interface
+        """Get infos from the interface.
 
-        We assume that interface to the default gateway is the one we want
+        We assume that interface to the default gateway is the one we want.
+
+        :type cls: NetworkInfo
+        :rtype: NetworkInfo
         """
         # FIXME: this may fail
         iface = netifaces.gateways()['default'][netifaces.AF_INET][1]
@@ -160,20 +198,21 @@ class NetworkInfo:
 
 
 class VirtualDevice:
-    """
-    Describes a HiQnet virtual device
+    """Describes a HiQnet virtual device.
 
-    This is the basic container object type
+    This is the basic container object type.
     """
-    class_name = None  # STATIC
-    name_string = None  # Instance+Dynamic
+    class_name = Attribute('Static')
+    name_string = Attribute('Instance+Dynamic')
+    objects = None
+    parameters = None
+    attributes = None
 
 
 class DeviceManager(VirtualDevice):
-    """
-    Describes a HiQnet device manager
+    """Describes a HiQnet device manager.
 
-    Each device has one and this is always the first virtual device
+    Each device has one and this is always the first virtual device.
     """
     flags = DEFAULT_FLAG_MASK
     serial_number = None
@@ -185,11 +224,15 @@ class DeviceManager(VirtualDevice):
                  flags=DEFAULT_FLAG_MASK,
                  serial_number=None,
                  software_version=None):
-        """
-        class_name:
-            The device's registered hiqnet type.
-        name_string
-            The device name. This can be changed by the user
+        """Init an HiQnet device manager.
+
+        :param name_string: The device name. This can be changed by the user
+        :type name_string: str
+        :param class_name: The device's registered hiqnet type.
+        :type class_name: str
+        :type flags: bytearray
+        :type serial_number:
+        :type software_version: str
         """
         if not class_name:
             class_name = name_string
@@ -203,14 +246,18 @@ class DeviceManager(VirtualDevice):
 
 
 class FQHiQnetAddress:
-    """
-    Fully Qualified HiQnet Address
-    """
+    """Fully Qualified HiQnet Address."""
     def __init__(self,
                  device_address=0,
-                 vd_address=b'\x00',  # 8 bits
-                 object_address=b'\x00\x00\x00',  # 24 bits
+                 vd_address=b'\x00',
+                 object_address=b'\x00\x00\x00',
                  ):
+        """Build a Fully Qualified HiQnet Address.
+
+        :type device_address: int between 1 and 65535 Device address
+        :type vd_address: bytearray 8 bits Virtual device address
+        :type object_address: bytearray 24 bits Object address
+        """
         self.device_address = device_address
         # TODO: make vd_address and object_address int rather than byte arrays
         self.vd_address = vd_address
@@ -218,19 +265,24 @@ class FQHiQnetAddress:
 
     @classmethod
     def broadcast_address(cls):
+        """Get the Fully Qualified HiQnet Broadcast Address.
+
+        :type cls: NetworkInfo
+        :rtype: NetworkInfo
+        """
         return cls(device_address=65535, vd_address=b'\x00', object_address=b'\x00\x00\x00')
 
     def __bytes__(self):
+        """Get the address as bytes"""
         return struct.pack('!H', self.device_address) + self.vd_address + self.object_address
 
     def __str__(self):
+        """Get the address in a printable format"""
         return self.__bytes__()
 
 
 class HiQnetMessage:
-    """
-    HiQnet message
-    """
+    """HiQnet message"""
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
@@ -304,11 +356,24 @@ class HiQnetMessage:
     payload = b''  # Placeholder, filled later, depends on the message
 
     def __init__(self, source, destination):
+        """Initiate an HiQnet message from source to destination.
+
+        :param source: Source of the message
+        :type source: FQHiQnetAddress
+        :param destination: destination of the message
+        :type destination: FQHiQnetAddress
+        :return:
+        """
         self.source_address = source
         self.destination_address = destination
         self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
 
     def disco_info(self, device):
+        """Build a Discovery Information message.
+
+        :param device: The HiQnet device sending the discovery message
+        :type device: Device
+        """
         self.message_id = MSG_DISCOINFO
         # Payload
         device_address = struct.pack('!H', self.source_address.device_address)
@@ -334,13 +399,26 @@ class HiQnetMessage:
             + mac_address + dhcp + ip_address + subnet_mask + gateway_address
 
     def request_address(self, req_addr):
+        """Build a Request Address message.
+
+        :param req_addr:
+        :type req_addr: int
+        """
         self.message_id = MSG_REQADDR
         self.payload = struct.pack('!H', req_addr)
 
     def address_used(self):
+        """Build an Address Used message."""
         self.message_id = MSG_ADDRUSED
 
     def hello(self):
+        """Build an hello message.
+
+        Starts a session.
+
+        :return: The session number
+        :rtype: int
+        """
         self.message_id = MSG_HELLO
         session_number = os.urandom(2)
         flag_mask = DEFAULT_FLAG_MASK
@@ -348,35 +426,63 @@ class HiQnetMessage:
         return session_number
 
     def get_attributes(self):
+        """Build a Get Attributes message."""
         self.message_id = MSG_GETATTR
 
     def get_vd_list(self):
+        """"Build a Get VD List message."""
         self.message_id = MSG_GETVDLIST
 
     def store(self):
+        """Build a Store message.
+
+        Stores current state to a preset.
+        """
         self.message_id = MSG_STORE
 
     def recall(self):
+        """Build a Recall message.
+
+        Recalls a preset.
+        """
         self.message_id = MSG_RECALL
 
     def locate(self, time, serial_number):
-        """
+        """Builds a Locate message.
+
+        The receiver makes itself visible. Usually this is done by flashing some LEDs on the front panel.
+
         :param time: time the leds should flash in ms
                      0x0000 turns off locate led(s)
                      0xffff turns on locate led(s)
-        :return: void
+        :type time: bytearray
+        :param serial_number: The target device's serial number
+        :type serial_number: str
+
+        .. seealso:: locate_on(), locate_off()
         """
         self.message_id = MSG_LOCATE
         serial_number_len = struct.pack('!H', len(serial_number))
         self.payload = time + serial_number_len + serial_number
 
     def locate_on(self, serial_number):
+        """Builds a locate message asking for the visual clue to be active
+
+        :param serial_number: The target device's serial number
+        :type serial_number: str
+        """
         self.locate(b'\xff\xff', serial_number)
 
     def locate_off(self, serial_number):
+        """Builds a locate message asking for the visual clue to be inactive
+
+        :param serial_number: The target device's serial number
+        :type serial_number: str
+        """
         self.locate(b'\x00\x00', serial_number)
 
     def _build_optional_headers(self):
+        """Builds the optional message headers."""
         # Optional error header
         if struct.unpack('!H', self.flags)[0] & struct.unpack('!H', FLAG_ERROR)[0]:
             error_code = b'\x02'
@@ -393,14 +499,17 @@ class HiQnetMessage:
             self.optional_headers += session_number
 
     def _compute_headerlen(self):
+        """Computes the header length."""
         headerlen = MIN_HEADER_LEN + len(self.optional_headers)
         self.headerlen = struct.pack('!B', headerlen)
 
     def _compute_messagelen(self):
+        """Computes the message length."""
         messagelen = len(self.payload) + struct.unpack('!B', self.headerlen)[0]
         self.messagelen = struct.pack('!I', messagelen)
 
     def _build_header(self):
+        """Builds the message header"""
         self._build_optional_headers()
         self._compute_headerlen()
         self._compute_messagelen()
@@ -409,10 +518,12 @@ class HiQnetMessage:
             + self.message_id + self.flags + self.hop_counter + self.sequence_number + self.optional_headers
 
     def __bytes__(self):
+        """Get the message as bytes"""
         self._build_header()
         return self.header + self.payload
 
     def __str__(self):
+        """Get the message in a printable form"""
         return self.__bytes__()
 
 # TODO: Event logs
@@ -422,12 +533,12 @@ class HiQnetMessage:
 
 
 class Device:
-    """
-    Describes a device or node
-    """
+    """Describes a device (aka node)."""
     _hiqnet_address = None
+    """:type : int Allowed values: 1 to 65534. 65535 is reserved as the broadcast address"""
     network_info = NetworkInfo.autodetect()
     manager = None
+    virtual_devices = None
 
     def __init__(self, name, hiqnet_address):
         self.manager = DeviceManager(name)
@@ -440,10 +551,9 @@ class Device:
 
     @staticmethod
     def negotiate_address():
-        """
-        Generates a random HiQnet address to datastore and reuse on the device
+        """Generates a random HiQnet address to datastore and reuse on the device.
 
-        The address is automatically checked on the network
+        The address is automatically checked on the network.
         """
         requested_address = random.randrange(1, 65535)
         # connection = Connection()
@@ -456,14 +566,33 @@ class Device:
 
 
 class Connection:
+    """Handles HiQnet IP connection.
+
+    .. warning:: Other connection types such as RS232, RS485 or USB are not handled yet.
+    """
     udp_transport = None
     tcp_transport = None
 
     def __init__(self, udp_transport, tcp_transport):
+        """Initiate a HiQnet IP connection over UDP and TCP.
+
+        :param udp_transport:
+        :type udp_transport: twisted.internet.interfaces.IUDPTransport
+        :param tcp_transport:
+        :type tcp_transport: twisted.internet.interfaces.ITCPTransport
+        :return:
+        """
         self.udp_transport = udp_transport
         self.tcp_transport = tcp_transport
 
     def sendto(self, message, destination):
+        """Send message to the destination.
+
+        :param message: Message to send.
+        :type message: HiQnetMessage
+        :param destination: Destination IPv4 address
+        :type destination: str
+        """
         if struct.unpack('!H', message.flags)[0] & struct.unpack('!H', FLAG_GUAR)[0]:
             # Send TCP message if the Guaranteed flag is set
             self.tcp_transport.write(bytes(message), (destination, IP_PORT))
@@ -473,14 +602,13 @@ class Connection:
 
 # noinspection PyClassHasNoInit
 class HiQnetTCPProtocol(protocol.Protocol):
+    """HiQnet Twisted TCP protocol."""
     def startProtocol(self):
-        """
-        Called after protocol started listening
-        :return:
-        """
+        """Called after protocol started listening."""
         self.factory.app.tcp_transport = self.transport
 
     def dataReceived(self, data):
+        """Called when data is received."""
         print("Received TCP data: ")
         print(binascii.hexlify(data))
 
@@ -489,18 +617,17 @@ class HiQnetTCPProtocol(protocol.Protocol):
 
 
 class HiQnetUDPProtocol(protocol.DatagramProtocol):
+    """HiQnet Twisted UDP protocol."""
     def __init__(self, app):
         self.app = app
 
     def startProtocol(self):
-        """
-        Called after protocol started listening
-        :return:
-        """
+        """Called after protocol started listening."""
         self.transport.setBroadcastAllowed(True)  # Some messages needs to be broadcasted
         self.app.udp_transport = self.transport
 
     def datagramReceived(self, data, addr):
+        """Called when data is received"""
         (host, port) = addr
         print("Received UDP data: ")
         print(binascii.hexlify(data))
@@ -514,6 +641,8 @@ class HiQnetUDPProtocol(protocol.DatagramProtocol):
 
 
 class HiQnetFactory(protocol.Factory):
+    """HiQnet Twisted Factory."""
+
     protocol = HiQnetTCPProtocol
 
     def __init__(self, app):
