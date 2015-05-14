@@ -695,6 +695,7 @@ class Connection:
             self.tcp_transport.write(bytes(message), (destination, IP_PORT))
         else:
             self.udp_transport.write(bytes(message), (destination, IP_PORT))
+        print("=>")  # DEBUG
         print(vars(message))  # DEBUG
 
 
@@ -715,6 +716,7 @@ class TCPProtocol(protocol.Protocol):
         print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
         message = Message(data)
+        print("<=")  # DEBUG
         print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
@@ -749,6 +751,7 @@ class UDPProtocol(protocol.DatagramProtocol):
         print(":", end="")
         print(port)
         message = Message(data)
+        print("<=")  # DEBUG
         print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
