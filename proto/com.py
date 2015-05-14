@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # *- coding: utf-8 -*
+"""Prototype CLI communication using the hiqnet module"""
+
 __author__ = 'Raphaël Doursenaud'
 
 import logging
 import socket
 
-from hiqontrol.hiqnet import hiqnet
+from hiqnet import hiqnet
 
 
 try:

@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# *- coding: utf-8 -*
+"""Prototype UDP client to send arbitrary data to HiQontrol or another HiQnet device."""
 
 __author__ = 'Raphaël Doursenaud'
 

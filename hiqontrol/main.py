@@ -252,8 +252,11 @@ class HiQontrolApp(App):
 
         Only display it on screen for debugging right now
 
-        :param data:
-        :type data: hiqnet.Message
+        :param message: HiQnet message
+        :type message: hiqnet.Message
+        :param: host: IPv4 host address
+        :param protocol: Protocol that received
+        :type protocol: str
         :return:
         """
         self.screen.debug.text = protocol + '(' + str(host) + ')' + binascii.hexlify(bytes(message))
