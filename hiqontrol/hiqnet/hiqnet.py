@@ -425,13 +425,18 @@ class Device:
     """
     Describes a device or node
     """
-    hiqnet_address = None
+    _hiqnet_address = None
     network_info = NetworkInfo.autodetect()
     manager = None
 
     def __init__(self, name, hiqnet_address):
         self.manager = DeviceManager(name)
-        self.hiqnet_address = hiqnet_address
+        self.set_hiqnet_address(hiqnet_address)
+
+    def set_hiqnet_address(self, address):
+        if 1 > address > 65534:
+            raise ValueError
+        self._hiqnet_address = address
 
     @staticmethod
     def negotiate_address():

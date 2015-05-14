@@ -96,7 +96,7 @@ class Control:
 
     def init(self, hiqnet_dest):
         c = hiqnet.Connection(self.udp_transport, self.tcp_transport)
-        source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device.hiqnet_address)
+        source_address = hiqnet.FQHiQnetAddress(device_address=self.source_device._hiqnet_address)
         destination_address = hiqnet.FQHiQnetAddress(hiqnet_dest)
         message = hiqnet.HiQnetMessage(source=source_address, destination=destination_address)
         return c, message
@@ -190,7 +190,7 @@ class HiQontrolApp(App):
         return self.device.manager.name_string
 
     def get_local_hiqnet_address(self):
-        return str(self.device.hiqnet_address)
+        return str(self.device._hiqnet_address)
 
     def get_local_mac_address(self):
         return self.device.network_info.mac_address
