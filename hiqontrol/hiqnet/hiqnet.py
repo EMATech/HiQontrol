@@ -19,6 +19,8 @@ from twisted.internet import protocol
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
 PROTOCOL_VERSION = 2
+PROTOCOL_MIN_VERSION = 1
+PROTOCOL_MAX_VERSION = 3
 
 MIN_HEADER_LEN = 25  # bytes
 
@@ -314,6 +316,7 @@ class Message:
     used for differentiating between revisions of individual messages. HiQnet is
     currently at revision 2. Devices that communicate with HiQnet version 1.0
     include the dbx ZonePro family. All others use version 2.0.
+    It also seems that a version 3.0 is in the works for IEEE AVB integration.
 
     :type: int
     """
@@ -445,8 +448,8 @@ class Message:
 
     def set_version(self, version):
         """Set the version."""
-        if not 0 < version <= 2:
-            raise ValueError("HiQnet version can only be 1 or 2")
+        if not PROTOCOL_MIN_VERSION <= version <= PROTOCOL_MAX_VERSION:
+            raise ValueError("This HiQnet version is unknown.")
         self.version = version
 
     def set_headerlen(self, headerlen):
