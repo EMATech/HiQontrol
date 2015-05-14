@@ -17,6 +17,9 @@ VUMETER_IP_PORT = 3333
 
 class VuMeterUDPPRotocol(protocol.DatagramProtocol):
     """Soundcraft VU Meter Twisted UDP protocol."""
+
+    name = "SoundcraftUDP"
+
     def __init__(self, app):
         self.app = app
 
@@ -31,7 +34,8 @@ class VuMeterUDPPRotocol(protocol.DatagramProtocol):
         (host, port) = addr
 
         # FIXME: debugging output should go into a logger
-        print("Received VU meter UDP data: ")
+        print("<=")
+        print(self.name + " data:")
         print(binascii.hexlify(data))
         print("from ", end="")
         print(host, end="")
@@ -39,4 +43,4 @@ class VuMeterUDPPRotocol(protocol.DatagramProtocol):
         print(port)
 
         # TODO: Process some more :)
-        self.app.handle_message(data, host, "Soundcraft UDP")
+        self.app.handle_message(data, host, self.name)

@@ -708,6 +708,9 @@ class Connection:
 # noinspection PyClassHasNoInit
 class TCPProtocol(protocol.Protocol):
     """HiQnet Twisted TCP protocol."""
+
+    name = "HiQnetTCP"
+
     def startProtocol(self):
         """Called after protocol started listening."""
         self.factory.app.tcp_transport = self.transport
@@ -719,18 +722,21 @@ class TCPProtocol(protocol.Protocol):
         :type data: bytearray
         """
         # FIXME: debugging output should go into a logger
-        print("Received HiQnet TCP data: ")
+        print("<=")
+        print(self.name + " data:")
         print(binascii.hexlify(data))
         message = Message(data)
-        print("<=")  # DEBUG
         print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
-        self.factory.app.handle_message(message, None, "HiQnet TCP")
+        self.factory.app.handle_message(message, None, self.name)
 
 
 class UDPProtocol(protocol.DatagramProtocol):
     """HiQnet Twisted UDP protocol."""
+
+    name = "HiQnetUDP"
+
     def __init__(self, app):
         self.app = app
 
@@ -750,18 +756,18 @@ class UDPProtocol(protocol.DatagramProtocol):
         (host, port) = addr
 
         # FIXME: debugging output should go into a logger
-        print("Received HiQnet UDP data: ")
+        print("<=")
+        print(self.name + "data:")
         print(binascii.hexlify(data))
         print("from ", end="")
         print(host, end="")
         print(":", end="")
         print(port)
         message = Message(data)
-        print("<=")  # DEBUG
         print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
-        self.app.handle_message(message, host, "HiQnet UDP")
+        self.app.handle_message(message, host, self.name)
 
 
 class Factory(protocol.Factory):
