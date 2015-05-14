@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""HiQnet protocol library."""
+
 from __future__ import print_function
 
 __author__ = 'Raphaël Doursenaud'
@@ -292,17 +294,17 @@ class FullyQualifiedAddress:
         return cls(device_address=65535, vd_address=b'\x00', object_address=b'\x00\x00\x00')
 
     def __bytes__(self):
-        """Get the address as bytes"""
+        """Get the address as bytes."""
         # TODO: make vd_address and object_address int rather than byte arrays
         return struct.pack('!H', self.device_address) + self.vd_address + self.object_address
 
     def __str__(self):
-        """Get the address in a printable format"""
+        """Get the address in a printable format."""
         return self.__bytes__()
 
 
 class Message:
-    """HiQnet message"""
+    """HiQnet message."""
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
@@ -448,7 +450,7 @@ class Message:
         self.version = version
 
     def set_headerlen(self, headerlen):
-        """Set the header length"""
+        """Set the header length."""
         if headerlen < MIN_HEADER_LEN:
             raise ValueError("The header can't be smaller than " + MIN_HEADER_LEN)
         self.headerlen = headerlen
@@ -560,7 +562,7 @@ class Message:
         self.payload = time + serial_number_len + serial_number
 
     def locate_on(self, serial_number):
-        """Builds a locate message asking for the visual clue to be active
+        """Builds a locate message asking for the visual clue to be active.
 
         :param serial_number: The target device's serial number
         :type serial_number: str
@@ -568,7 +570,7 @@ class Message:
         self.locate(b'\xff\xff', serial_number)
 
     def locate_off(self, serial_number):
-        """Builds a locate message asking for the visual clue to be inactive
+        """Builds a locate message asking for the visual clue to be inactive.
 
         :param serial_number: The target device's serial number
         :type serial_number: str

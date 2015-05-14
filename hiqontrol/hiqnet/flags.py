@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""HiQnet Flags.
+
+Simplified flags management with direct bitfields access.
+
+.. seealso:: https://wiki.python.org/moin/BitManipulation
+"""
 
 __author__ = 'Raphaël Doursenaud'
 

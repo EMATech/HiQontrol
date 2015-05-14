@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""HiQontrol: an attempt at building a free, open source, multi-platform ViSi Remote alternative."""
 
 __author__ = 'Raphaël Doursenaud'
 
@@ -145,15 +146,11 @@ class HiQontrolApp(App):
         return self.screen
 
     def on_start(self):
-        """
-        Initialize device and network communications
-        """
+        """Initialize device and network communications."""
         self.control = Control(self.device, self.udp_transport, self.tcp_transport)
 
     def on_pause(self):
-        """
-        Enable pause mode
-        """
+        """Enable pause mode."""
         return True
 
     def store_needs_udate(self):
@@ -250,8 +247,7 @@ class HiQontrolApp(App):
         return dict_adapter
 
     def handle_message(self, message, host, protocol):
-        """
-        Handle messages received thru twisted servers
+        """Handle messages received from twisted servers.
 
         Only display it on screen for debugging right now
 

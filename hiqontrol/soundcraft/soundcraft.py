@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
+"""Soundcraft extensions to the HiQnet protocol.
+
+In order to build ViSi Remote, sending VU meters data was required.
+Soundcraft added these network messages to the standard HiQnet.
+"""
+
 from __future__ import print_function
 
 __author__ = 'Raphaël Doursenaud'
 
 import binascii
-from hiqnet import hiqnet
+from twisted.internet import protocol
 
 VUMETER_IP_PORT = 3333
 
 
-class VuMeterUDPPRotocol(hiqnet.UDPProtocol):
+class VuMeterUDPPRotocol(protocol.DatagramProtocol):
     """Soundcraft VU Meter Twisted UDP protocol."""
+    def __init__(self, app):
+        self.app = app
 
     def datagramReceived(self, data, addr):
         """Called when data is received.
