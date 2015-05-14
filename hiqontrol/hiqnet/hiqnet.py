@@ -78,8 +78,8 @@ MSG_REQEVTLOG            = b'\x01\x2c'
 class Attribute:
     # FIXME: Use it?
     type = None
-    allowed_types = [
-        'STATIC',
+    _allowed_types = [
+        'Static',
         'Instance',
         'Instance+Dynamic'
     ]
