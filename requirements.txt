@@ -1,3 +1,3 @@
-Kivy==1.8.0
+Kivy>=1.8.0
 netifaces==0.10.4
-Twisted==15.0.0
+Twisted>=15.0.0
