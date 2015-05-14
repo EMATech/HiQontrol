@@ -460,8 +460,24 @@ class Message:
         self.hop_counter = struct.unpack('!B', message[22])[0]
         self.sequence_number = struct.unpack('!H', message[23:25])[0]
         if self.headerlen > 25:
+            index = 25
             # Optional Headers are present, check the flags
-            raise NotImplementedError
+            if self.flags.error:
+                error_code = struct.unpack('!B', message[index])[0]
+                index += 1
+                error_string = message[index]  # FIXME: detect string end
+                index += len(error_string)
+                raise NotImplementedError
+            if self.flags.multipart:
+                start_seq_no = struct.unpack('!B', message[index])[0]
+                index += 1
+                bytes_remaining = struct.unpack('!L', message[index])[0]
+                index += 4
+                raise NotImplementedError
+            if self.flags.session:
+                session_number = struct.unpack('!H', message[index])[0]
+                index += 2
+                raise NotImplementedError
         self.payload = message[self.headerlen:self.messagelen]
         # TODO: decode payload by message type
 
@@ -763,7 +779,7 @@ class UDPProtocol(protocol.DatagramProtocol):
         print(":", end="")
         print(port)
         message = Message(data)
-        print(vars(message))  ## DEBUG
+        print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
         self.app.handle_message(data, host, "HiQnet UDP")
