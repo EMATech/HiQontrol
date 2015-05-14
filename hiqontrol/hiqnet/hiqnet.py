@@ -10,8 +10,11 @@ import netifaces
 import socket
 import random
 import binascii
+import ctypes
 
 from twisted.internet import protocol
+
+c_uint16 = ctypes.c_uint16
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
@@ -22,6 +25,8 @@ MIN_HEADER_LEN = 25  # bytes
 DEFAULT_HOP_COUNTER = b'\x05'
 
 DEFAULT_FLAG_MASK = b'\x01\xff'
+
+SUPPORTED_FLAG_MASK = DEFAULT_FLAG_MASK
 
 DEFAULT_KEEPALIVE = 10000  # ms
 
@@ -74,6 +79,49 @@ MSG_REQEVTLOG            = b'\x01\x2c'
 #
 # Virtual devices, objects and parameters
 #   Have a Class Name and a Class ID
+
+class DeviceFlagsBits(ctypes.LittleEndianStructure):
+    """Bitfields for the device flags."""
+    _fields_ = [
+        ('reqack', c_uint16, 1),
+        ('ack', c_uint16, 1),
+        ('info', c_uint16, 1),
+        ('error', c_uint16, 1),
+        ('res1', c_uint16, 1),
+        ('guaranteed', c_uint16, 1),
+        ('multipart', c_uint16, 1),
+        ('res2', c_uint16, 1),
+        ('session', c_uint16, 1),
+        ('res3', c_uint16, 1),
+        ('res4', c_uint16, 1),
+        ('res5', c_uint16, 1),
+        ('res6', c_uint16, 1),
+        ('res7', c_uint16, 1),
+        ('res8', c_uint16, 1),
+        ('res9', c_uint16, 1),
+    ]
+
+
+class DeviceFlags(ctypes.Union):
+    """Device flags."""
+    _fields_ = [
+        ('b', DeviceFlagsBits),
+        ('asByte', c_uint16),
+    ]
+
+    _anonymous_ = 'b'
+
+    def __bytes__(self):
+        return struct.pack('!H', self.asByte)
+
+    def __str__(self):
+        return self.__bytes__()
+
+    def __add__(self, other):
+        return str(self) + other
+
+    def __radd__(self, other):
+        return other + str(self)
 
 
 class Attribute:
@@ -215,14 +263,14 @@ class DeviceManager(VirtualDevice):
 
     Each device has one and this is always the first virtual device.
     """
-    flags = DEFAULT_FLAG_MASK
+    flags = DeviceFlags()
     serial_number = None
     software_version = None
 
     def __init__(self,
                  name_string,
                  class_name=None,
-                 flags=DEFAULT_FLAG_MASK,
+                 flags=0,
                  serial_number=None,
                  software_version=None):
         """Init an HiQnet device manager.
@@ -239,7 +287,7 @@ class DeviceManager(VirtualDevice):
             class_name = name_string
         self.class_name = class_name
         self.name_string = name_string
-        self.flags = flags
+        self.flags.asByte = flags
         if not serial_number:
             serial_number = name_string
         self.serial_number = serial_number
@@ -339,7 +387,7 @@ class Message:
     type of method indicated by the Message ID. Product-specific IDs may also exist
     and will be documented appropriately.
     """
-    flags = b'\x00\x00'  # 2 bytes
+    flags = DeviceFlags()  # 2 bytes
     """
     The Flags denote what kinds of options are active when set to ‘1’ and are
     allocated in the following manner:
@@ -408,7 +456,7 @@ class Message:
         self.source_address = FullyQualifiedAddress(devicevdobject=message[6:12])
         self.destination_address = FullyQualifiedAddress(devicevdobject=message[12:18])
         self.message_id = message[18:20]  # TODO: decode
-        self.flags = message[20:22]  # TODO: decode
+        self.flags.asByte = struct.unpack('!H', message[20:22])[0]
         self.hop_counter = struct.unpack('!B', message[22])[0]
         self.sequence_number = struct.unpack('!H', message[23:25])[0]
         if self.headerlen > 25:
@@ -487,7 +535,7 @@ class Message:
         """
         self.message_id = MSG_HELLO
         session_number = os.urandom(2)
-        flag_mask = DEFAULT_FLAG_MASK
+        flag_mask = SUPPORTED_FLAG_MASK
         self.payload = session_number + flag_mask
         return session_number
 
@@ -550,17 +598,17 @@ class Message:
     def _build_optional_headers(self):
         """Builds the optional message headers."""
         # Optional error header
-        if struct.unpack('!H', self.flags)[0] & struct.unpack('!H', FLAG_ERROR)[0]:
+        if self.flags.error:
             error_code = b'\x02'
             error_string = b''
             self.optional_headers += error_code + error_string
         # Optional multi-part header
-        if struct.unpack('!H', self.flags)[0] & struct.unpack('!H', FLAG_MULTIPART)[0]:
+        if self.flags.multipart:
             start_seq_no = b'\x02'
             bytes_remaining = b'\x00\x00\x00\x00'  # 4 bytes
             self.optional_headers += start_seq_no + bytes_remaining
         # Optional session number header
-        if struct.unpack('!H', self.flags)[0] & struct.unpack('!H', FLAG_SESSION)[0]:
+        if self.flags.session:
             session_number = b'\x00\x00'  # 2 bytes
             self.optional_headers += session_number
 
@@ -575,7 +623,7 @@ class Message:
         self.messagelen = struct.pack('!I', messagelen)
 
     def _build_header(self):
-        """Builds the message header"""
+        """Builds the message header."""
         self._build_optional_headers()
         self._compute_headerlen()
         self._compute_messagelen()
@@ -584,12 +632,12 @@ class Message:
             + self.message_id + self.flags + self.hop_counter + self.sequence_number + self.optional_headers
 
     def __bytes__(self):
-        """Get the message as bytes"""
+        """Get the message as bytes."""
         self._build_header()
         return self.header + self.payload
 
     def __str__(self):
-        """Get the message in a printable form"""
+        """Get the message in a printable form."""
         return self.__bytes__()
 
 # TODO: Event logs
@@ -659,7 +707,7 @@ class Connection:
         :param destination: Destination IPv4 address
         :type destination: str
         """
-        if struct.unpack('!H', message.flags)[0] & struct.unpack('!H', FLAG_GUAR)[0]:
+        if message.flags.guaranteed:
             # Send TCP message if the Guaranteed flag is set
             self.tcp_transport.write(bytes(message), (destination, IP_PORT))
         else:
