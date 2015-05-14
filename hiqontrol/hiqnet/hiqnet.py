@@ -458,12 +458,16 @@ class Message:
             raise ValueError("Message can't be smaller than the header")
         self.messagelen = messagelen
 
-    def disco_info(self, device):
+    def disco_info(self, device, disco_type='Q'):
         """Build a Discovery Information message.
 
         :param device: The HiQnet device sending the discovery message
         :type device: Device
         """
+        if disco_type == 'I':
+            self.flags.info = 1
+        else:
+            self.flags.info = 0
         self.message_id = MSG_DISCOINFO
         # Payload
         device_address = struct.pack('!H', self.source_address.device_address)
