@@ -695,6 +695,7 @@ class Connection:
             self.tcp_transport.write(bytes(message), (destination, IP_PORT))
         else:
             self.udp_transport.write(bytes(message), (destination, IP_PORT))
+        print(vars(message))  # DEBUG
 
 
 # noinspection PyClassHasNoInit
@@ -714,6 +715,7 @@ class TCPProtocol(protocol.Protocol):
         print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
         message = Message(data)
+        print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
         self.factory.app.handle_message(message, None, "HiQnet TCP")
@@ -747,6 +749,7 @@ class UDPProtocol(protocol.DatagramProtocol):
         print(":", end="")
         print(port)
         message = Message(data)
+        print(vars(message))  # DEBUG
 
         # TODO: Process some more :)
         self.app.handle_message(message, host, "HiQnet UDP")
