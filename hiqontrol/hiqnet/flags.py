@@ -28,6 +28,16 @@ class DeviceFlagsBits(ctypes.LittleEndianStructure):
         ('res9', c_uint16, 1),
     ]
 
+    def __str__(self):
+        """String representation.
+
+        Useful for debugging purposes
+        """
+        string = ''
+        for name, type, len in self._fields_:
+            string += name + ":" + str(getattr(self, name)) + " "
+        return string
+
 
 class DeviceFlags(ctypes.Union):
     """Device flags."""
@@ -64,6 +74,16 @@ class ParameterFlagsBits(ctypes.LittleEndianStructure):
         ('res2', c_uint16, 1),
         ('res3', c_uint16, 1),
     ]
+
+    def __str__(self):
+        """String representation.
+
+        Useful for debugging purposes
+        """
+        string = ''
+        for name, type, len in self._fields_:
+            string += name + ":" + str(getattr(self, name)) + " "
+        return string
 
 
 class ParameterFlags(ctypes.Union):
