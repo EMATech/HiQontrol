@@ -10,17 +10,17 @@ import netifaces
 import socket
 import random
 import binascii
-from flags import *
+from .flags import *
 
 from twisted.internet import protocol
 
 IP_PORT = 3804  # IANA declared as IQnet. Go figure.
 
-PROTOCOL_VERSION = b'\x02'
+PROTOCOL_VERSION = 2
 
 MIN_HEADER_LEN = 25  # bytes
 
-DEFAULT_HOP_COUNTER = b'\x05'
+DEFAULT_HOP_COUNTER = 5
 
 DEFAULT_FLAG_MASK = b'\x01\xff'
 
@@ -312,16 +312,22 @@ class Message:
     used for differentiating between revisions of individual messages. HiQnet is
     currently at revision 2. Devices that communicate with HiQnet version 1.0
     include the dbx ZonePro family. All others use version 2.0.
+
+    :type: int
     """
-    headerlen = struct.pack('!B', MIN_HEADER_LEN)  # 1 byte
+    headerlen = MIN_HEADER_LEN  # 1 byte
     """
     The Header Length is the size in bytes of the entire message header, including any
     additional headers such as 'Error' or 'Multi-part'.
+
+    :type: int
     """
-    messagelen = b'\x00\x00\x00\x00'  # 4 bytes
+    messagelen = 0  # 4 bytes
     """
     The Message Length is the size in bytes of the entire message - from the
     ‘Version’ field through to the last byte of the payload.
+
+    :type: int
     """
     source_address = FullyQualifiedAddress()  # 6 byte (48 bits)
     """
@@ -360,15 +366,19 @@ class Message:
     The Hop Count denotes the number of network hops that a message has traversed
     and is used to stop broadcast loops. This field should generally be defaulted to
     0x05.
+
+    :type: int
     """
     new_sequence_number = itertools.count()
-    sequence_number = b'\x00\x00'  # 2 bytes
+    sequence_number = 0  # 2 bytes
     """
     The Sequence number is used to uniquely identify each HiQnet message leaving a
     Device. This is primarily used for diagnostic purposes. The sequence number
     starts at 0 on power-up and increments for each successive message the Routing
     Layer sends to the Packet Layer. The Sequence Number rolls over at the top of its
     range.
+
+    :type: int
     """
 
     optional_headers = b''  # Placeholder, may not be filled
@@ -389,7 +399,7 @@ class Message:
         else:
             self.source_address = source
             self.destination_address = destination
-            self.sequence_number = struct.pack('!H', next(self.new_sequence_number))
+            self.sequence_number = next(self.new_sequence_number)
 
     def decode_message(self, message):
         """Decodes a binary message.
@@ -568,35 +578,41 @@ class Message:
             error_code = b'\x02'
             error_string = b''
             self.optional_headers += error_code + error_string
+            raise NotImplementedError
         # Optional multi-part header
         if self.flags.multipart:
             start_seq_no = b'\x02'
             bytes_remaining = b'\x00\x00\x00\x00'  # 4 bytes
             self.optional_headers += start_seq_no + bytes_remaining
+            raise NotImplementedError
         # Optional session number header
         if self.flags.session:
             session_number = b'\x00\x00'  # 2 bytes
             self.optional_headers += session_number
+            raise NotImplementedError
 
     def _compute_headerlen(self):
         """Computes the header length."""
-        headerlen = MIN_HEADER_LEN + len(self.optional_headers)
-        self.headerlen = struct.pack('!B', headerlen)
+        self.headerlen = MIN_HEADER_LEN + len(self.optional_headers)
 
     def _compute_messagelen(self):
         """Computes the message length."""
-        messagelen = len(self.payload) + struct.unpack('!B', self.headerlen)[0]
-        self.messagelen = struct.pack('!I', messagelen)
+        self.messagelen = len(self.payload) + self.headerlen
 
     def _build_header(self):
         """Builds the message header."""
         self._build_optional_headers()
         self._compute_headerlen()
         self._compute_messagelen()
-        self.header = bytes(self.version) + bytes(self.headerlen) + bytes(self.messagelen) \
+        self.header = struct.pack('!B', self.version) \
+            + struct.pack('!B', self.headerlen) \
+            + struct.pack('!L', self.messagelen) \
             + bytes(self.source_address) + bytes(self.destination_address) \
-            + bytes(self.message_id) + bytes(self.flags) + bytes(self.hop_counter) \
-            + bytes(self.sequence_number) + bytes(self.optional_headers)
+            + bytes(self.message_id) \
+            + bytes(self.flags) \
+            + struct.pack('!B', self.hop_counter) \
+            + struct.pack('!H', self.sequence_number) \
+            + bytes(self.optional_headers)
 
     def __bytes__(self):
         """Get the message as bytes."""
