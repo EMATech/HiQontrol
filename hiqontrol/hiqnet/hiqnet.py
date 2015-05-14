@@ -673,9 +673,9 @@ class Connection:
     def __init__(self, udp_transport, tcp_transport):
         """Initiate a HiQnet IP connection over UDP and TCP.
 
-        :param udp_transport:
+        :param udp_transport: Twisted UDP transport
         :type udp_transport: twisted.internet.interfaces.IUDPTransport
-        :param tcp_transport:
+        :param tcp_transport: Twisted TCP transport
         :type tcp_transport: twisted.internet.interfaces.ITCPTransport
         :return:
         """
@@ -685,7 +685,7 @@ class Connection:
     def sendto(self, message, destination):
         """Send message to the destination.
 
-        :param message: Message to send.
+        :param message: Message to send
         :type message: Message
         :param destination: Destination IPv4 address
         :type destination: str
