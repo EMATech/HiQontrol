@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 __author__ = 'Raphaël Doursenaud'
 
@@ -608,7 +609,11 @@ class TCPProtocol(protocol.Protocol):
         self.factory.app.tcp_transport = self.transport
 
     def dataReceived(self, data):
-        """Called when data is received."""
+        """Called when data is received.
+
+        :param data: Received binary data
+        :type data: bytearray
+        """
         print("Received HiQnet TCP data: ")
         print(binascii.hexlify(data))
 
@@ -627,13 +632,19 @@ class UDPProtocol(protocol.DatagramProtocol):
         self.app.udp_transport = self.transport
 
     def datagramReceived(self, data, addr):
-        """Called when data is received"""
+        """Called when data is received.
+
+        :param data: Receive binary data
+        :type data: bytearray
+        :param addr: IPv4 address and port of the sender
+        :type addr: tuple
+        """
         (host, port) = addr
         print("Received HiQnet UDP data: ")
         print(binascii.hexlify(data))
-        print("from: ")
-        print(host)
-        print("on port:")
+        print("from ", end="")
+        print(host, end="")
+        print(":", end="")
         print(port)
 
         # TODO: Process some more :)
