@@ -527,10 +527,12 @@ class Message:
     def get_attributes(self):
         """Build a Get Attributes message."""
         self.message_id = MSG_GETATTR
+        raise NotImplementedError
 
     def get_vd_list(self):
         """"Build a Get VD List message."""
         self.message_id = MSG_GETVDLIST
+        raise NotImplementedError
 
     def store(self):
         """Build a Store message.
@@ -538,6 +540,7 @@ class Message:
         Stores current state to a preset.
         """
         self.message_id = MSG_STORE
+        raise NotImplementedError
 
     def recall(self):
         """Build a Recall message.
@@ -545,6 +548,7 @@ class Message:
         Recalls a preset.
         """
         self.message_id = MSG_RECALL
+        raise NotImplementedError
 
     def locate(self, time, serial_number):
         """Builds a Locate message.
