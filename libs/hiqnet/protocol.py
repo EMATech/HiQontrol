@@ -11,6 +11,7 @@ import socket
 import binascii
 
 from flags import *
+from networkinfo import *
 
 PROTOCOL_VERSION = 2
 PROTOCOL_MIN_VERSION = 1
@@ -26,43 +27,100 @@ SUPPORTED_FLAG_MASK = DEFAULT_FLAG_MASK
 
 DEFAULT_KEEPALIVE = 10000  # ms
 
-ETHERNET_NETWORK_ID = b'\x01'
 
-FLAG_REQACK     = b'\x00\x01'
-FLAG_ACK        = b'\x00\x02'
-FLAG_INFO       = b'\x00\x04'
-FLAG_ERROR      = b'\x00\x08'
-FLAG_GUAR       = b'\x00\x20'
-FLAG_MULTIPART  = b'\x00\x40'
-FLAG_SESSION    = b'\x01\x00'
+class Message:
+    """HiQnet messages handling."""
 
-MSG_DISCOINFO            = b'\x00\x00'
-MSG_RESERVED0            = b'\x00\x01'
-MSG_GETNETINFO           = b'\x00\x02'
-MSG_RESERVED1            = b'\x00\x03'
-MSG_REQADDR              = b'\x00\x04'
-MSG_ADDRUSED             = b'\x00\x05'
-MSG_SETADDR              = b'\x00\x06'
-MSG_GOODBYE              = b'\x00\x07'
-MSG_HELLO                = b'\x00\x08'
-MSG_MULTPARMSET          = b'\x01\x00'
-MSG_MULTOBJPARMSET       = b'\x01\x01'
-MSG_PARMSETPCT           = b'\x01\x02'
-MSG_MULTPARMGET          = b'\x01\x03'
-MSG_GETATTR              = b'\x01\x0d'
-MSG_SETATTR              = b'\x01\x0e'  # Reverse engineered. Not part of the official spec.
-MSG_MULTPARMSUB          = b'\x01\x0f'
-MSG_PARMSUBPCT           = b'\x01\x11'
-MSG_MULTPARMUNSUB        = b'\x01\x12'
-MSG_PARMSUBALL           = b'\x01\x13'
-MSG_PARMUNSUBALL         = b'\x01\x14'
-MSG_SUBEVTLOGMSGS        = b'\x01\x15'
-MSG_GETVDLIST            = b'\x01\x1a'
-MSG_STORE                = b'\x01\x24'
-MSG_RECALL               = b'\x01\x25'
-MSG_LOCATE               = b'\x01\x29'
-MSG_UNSUBEVTLOGMSGS      = b'\x01\x2b'
-MSG_REQEVTLOG            = b'\x01\x2c'
+    MESSAGES = {
+        'DISCOINFO': b'\x00\x00',
+        'RESERVED0': b'\x00\x01',
+        'GETNETINFO': b'\x00\x02',
+        'RESERVED1': b'\x00\x03',
+        'REQADDR': b'\x00\x04',
+        'ADDRUSED': b'\x00\x05',
+        'SETADDR': b'\x00\x06',
+        'GOODBYE': b'\x00\x07',
+        'HELLO': b'\x00\x08',
+        'MULTPARMSET': b'\x01\x00',
+        'MULTOBJPARMSET': b'\x01\x01',
+        'PARMSETPCT': b'\x01\x02',
+        'MULTPARMGET': b'\x01\x03',
+        'GETATTR': b'\x01\x0d',
+        'SETATTR': b'\x01\x0e',
+        'MULTPARMSUB': b'\x01\x0f',
+        'PARMSUBPCT': b'\x01\x11',
+        'MULTPARMUNSUB': b'\x01\x12',
+        'PARMSUBALL': b'\x01\x13',
+        'PARMUNSUBALL': b'\x01\x14',
+        'SUBEVTLOGMSGS': b'\x01\x15',
+        'GETVDLIST': b'\x01\x1a',
+        'STORE': b'\x01\x24',
+        'RECALL': b'\x01\x25',
+        'LOCATE': b'\x01\x29',
+        'UNSUBEVTLOGMSGS': b'\x01\x2b',
+        'REQEVTLOG': b'\x01\x2c',
+        b'\x00\x00': 'DISCOINFO',
+        b'\x00\x01': 'RESERVED0',
+        b'\x00\x02': 'GETNETINFO',
+        b'\x00\x03': 'RESERVED1',
+        b'\x00\x04': 'REQADDR',
+        b'\x00\x05': 'ADDRUSED',
+        b'\x00\x06': 'SETADDR',
+        b'\x00\x07': 'GOODBYE',
+        b'\x00\x08': 'HELLO',
+        b'\x01\x00': 'MULTPARMSET',
+        b'\x01\x01': 'MULTOBJPARMSET',
+        b'\x01\x02': 'PARMSETPCT',
+        b'\x01\x03': 'MULTPARMGET',
+        b'\x01\x0d': 'GETATTR',
+        b'\x01\x0e': 'SETATTR',
+        b'\x01\x0f': 'MULTPARMSUB',
+        b'\x01\x11': 'PARMSUBPCT',
+        b'\x01\x12': 'MULTPARMUNSUB',
+        b'\x01\x13': 'PARMSUBALL',
+        b'\x01\x14': 'PARMUNSUBALL',
+        b'\x01\x15': 'SUBEVTLOGMSGS',
+        b'\x01\x1a': 'GETVDLIST',
+        b'\x01\x24': 'STORE',
+        b'\x01\x25': 'RECALL',
+        b'\x01\x29': 'LOCATE',
+        b'\x01\x2b': 'UNSUBEVTLOGMSGS',
+        b'\x01\x2c': 'REQEVTLOG',
+    }
+
+    identifier = None
+    name = None
+
+    def __init__(self, identifier=None, name=None):
+        """Build a message.
+
+        :param identifier: The message ID
+        :type identifier: bytearray
+        :param name: The message name
+        :type name: str
+        """
+        if identifier and name:
+            raise ValueError("You must no supply both a identifier and name.")
+
+        if identifier:
+            if identifier in self.MESSAGES:
+                self.identifier = identifier
+                self.name = self.MESSAGES[identifier]
+            else:
+                raise ValueError("Unknown message ID.")
+
+        if name:
+            if name in self.MESSAGES:
+                self.name = name
+                self.identifier = self.MESSAGES[name]
+            else:
+                raise ValueError("Unknown message name.")
+
+    def __str__(self):
+        return self.identifier
+
+    def __repr__(self):
+        return self.name
 
 
 class FullyQualifiedAddress:
@@ -122,16 +180,21 @@ class FullyQualifiedAddress:
         """Get the address in a printable format."""
         return self.__bytes__()
 
+    def __repr__(self):
+        return str(self.device_address) + '.' + \
+            "%d" % struct.unpack('!B', self.vd_address) + \
+            '.' + "%d.%d.%d" % struct.unpack('!BBB', self.object_address)
 
-class Message:
-    """HiQnet message."""
+
+class Command:
+    """HiQnet command."""
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     version = PROTOCOL_VERSION  # 1 byte
     """
     The Version Number indicates the revision number of the entire protocol; it is not
-    used for differentiating between revisions of individual messages. HiQnet is
+    used for differentiating between revisions of individual commands. HiQnet is
     currently at revision 2. Devices that communicate with HiQnet version 1.0
     include the dbx ZonePro family. All others use version 2.0.
     It also seems that a version 3.0 is in the works for IEEE AVB integration.
@@ -140,26 +203,26 @@ class Message:
     """
     headerlen = MIN_HEADER_LEN  # 1 byte
     """
-    The Header Length is the size in bytes of the entire message header, including any
+    The Header Length is the size in bytes of the entire command header, including any
     additional headers such as 'Error' or 'Multi-part'.
 
     :type: int
     """
-    messagelen = 0  # 4 bytes
+    commandlen = 0  # 4 bytes
     """
-    The Message Length is the size in bytes of the entire message - from the
+    The command length is the size in bytes of the entire command - from the
     ‘Version’ field through to the last byte of the payload.
 
     :type: int
     """
     source_address = FullyQualifiedAddress()  # 6 byte (48 bits)
     """
-    The Source Address specifies the HiQnet address where the message has come
-    from; this is often used by the recipient for sending back reply messages.
+    The Source Address specifies the HiQnet address where the command has come
+    from; this is often used by the recipient for sending back reply commands.
     """
     destination_address = FullyQualifiedAddress()  # 6 byte (48 bits)
-    """The Destination Address specifies where the message is to be delivered to."""
-    message_id = b'\x00\x00'  # 2 bytes
+    """The Destination Address specifies where the command is to be delivered to."""
+    message = Message(identifier=b'\x00\x00')  # 2 bytes
     """
     The Message ID is a unique identifier that indicates the method that the
     destination Device must perform. If there is a payload, it is usually specific to the
@@ -194,12 +257,12 @@ class Message:
     +--------------------+-------------+-----------------+-------------------------+
 
     Bit 5 must be set for any applications using TCP/IP only on the network
-    interface. This will ensure that any messages are sent guaranteed (TCP rather
+    interface. This will ensure that any commands are sent guaranteed (TCP rather
     than UDP).
     """
     hop_counter = DEFAULT_HOP_COUNTER  # 1 byte
     """
-    The Hop Count denotes the number of network hops that a message has traversed
+    The Hop Count denotes the number of network hops that a command has traversed
     and is used to stop broadcast loops. This field should generally be defaulted to
     0x05.
 
@@ -208,9 +271,9 @@ class Message:
     new_sequence_number = itertools.count()
     sequence_number = 0  # 2 bytes
     """
-    The Sequence number is used to uniquely identify each HiQnet message leaving a
+    The Sequence number is used to uniquely identify each HiQnet command leaving a
     Device. This is primarily used for diagnostic purposes. The sequence number
-    starts at 0 on power-up and increments for each successive message the Routing
+    starts at 0 on power-up and increments for each successive command the Routing
     Layer sends to the Packet Layer. The Sequence Number rolls over at the top of its
     range.
 
@@ -219,63 +282,168 @@ class Message:
 
     optional_headers = b''  # Placeholder, may not be filled
 
+    # TODO: optional headers object?
+    error_code = 0
+    error_string = ''
+    start_seq_no = 0
+    bytes_remaining = 0
+    session_number = 0
+
     payload = b''  # Placeholder, filled later, depends on the message
 
-    def __init__(self, source=None, destination=None, message=None):
-        """Initiate an HiQnet message from source to destination.
+    def __init__(self, source=None, destination=None, command=None):
+        """Initiate an HiQnet command from source to destination.
 
-        :param source: Source of the message
+        :param source: Source of the command
         :type source: FullyQualifiedAddress
-        :param destination: destination of the message
+        :param destination: destination of the command
         :type destination: FullyQualifiedAddress
         :return:
         """
-        if message:
-            self.decode_message(message=message)
+        if command:
+            self.decode(command=command)
         else:
             self.source_address = source
-            self.destination_address = destination
+            self.destination_address = destination  # TODO: use broadcast if not provided
             self.sequence_number = next(self.new_sequence_number)
 
-    def decode_message(self, message):
-        """Decodes a binary message.
+    def decode(self, command):
+        """Decodes a binary command.
 
-        :param message: The binary message to decode
+        :param command: The binary command to decode
         """
-        self.set_version(struct.unpack('!B', message[0])[0])
-        self.set_headerlen(struct.unpack('!B', message[1])[0])
-        if len(message) < self.headerlen:
-            raise BufferError("Message is smaller than it's header length")
-        self.set_messagelen(struct.unpack('!L', message[2:6])[0])
-        if len(message) != self.messagelen:
-            raise BufferError("Message length header and actual length missmatch")
-        self.source_address = FullyQualifiedAddress(devicevdobject=message[6:12])
-        self.destination_address = FullyQualifiedAddress(devicevdobject=message[12:18])
-        self.message_id = message[18:20]  # TODO: decode
-        self.flags.asByte = struct.unpack('!H', message[20:22])[0]
-        self.hop_counter = struct.unpack('!B', message[22])[0]
-        self.sequence_number = struct.unpack('!H', message[23:25])[0]
-        if self.headerlen > 25:
-            index = 25
+        print("Real command length: ", len(command))
+        if len(command) < MIN_HEADER_LEN:
+            raise BufferError("Command too short")
+        self.set_version(struct.unpack('!B', command[0])[0])
+        self.set_headerlen(struct.unpack('!B', command[1])[0])
+        if len(command) < self.headerlen:
+            raise BufferError("Command is smaller than it's header length")
+        self.set_commandlen(struct.unpack('!L', command[2:6])[0])
+        if len(command) != self.commandlen:
+            raise BufferError("Command length header and actual length missmatch")
+        self.source_address = FullyQualifiedAddress(devicevdobject=command[6:12])
+        self.destination_address = FullyQualifiedAddress(devicevdobject=command[12:18])
+        self.message = Message(identifier=command[18:20])
+        self.flags.asByte = struct.unpack('!H', command[20:22])[0]
+        print("Flags: ", repr(self.flags))
+        self.hop_counter = struct.unpack('!B', command[22])[0]
+        self.sequence_number = struct.unpack('!H', command[23:25])[0]
+        if self.headerlen > MIN_HEADER_LEN:
+            index = MIN_HEADER_LEN
             # Optional Headers are present, check the flags
             if self.flags.error:
-                error_code = struct.unpack('!B', message[index])[0]
+                self.error_code = struct.unpack('!B', command[index])[0]
                 index += 1
-                error_string = message[index]  # FIXME: detect string end
-                index += len(error_string)
+                self.error_string = struct.unpack('s', command[index])[0]  # FIXME: detect string end
+                index += len(self.error_string)
                 raise NotImplementedError
             if self.flags.multipart:
-                start_seq_no = struct.unpack('!B', message[index])[0]
+                self.start_seq_no = struct.unpack('!B', command[index])[0]
                 index += 1
-                bytes_remaining = struct.unpack('!L', message[index])[0]
+                self.bytes_remaining = struct.unpack('!L', command[index])[0]
                 index += 4
                 raise NotImplementedError
             if self.flags.session:
-                session_number = struct.unpack('!H', message[index])[0]
+                self.session_number = struct.unpack('!H', command[index:index + 2])[0]
                 index += 2
-                raise NotImplementedError
-        self.payload = message[self.headerlen:self.messagelen]
+                print(self.session_number)  # DEBUG
+        self.payload = command[self.headerlen:self.commandlen]
+
         # TODO: decode payload by message type
+        if self.message.name == 'DISCOINFO':
+            self.decode_discoinfo()
+
+    def decode_discoinfo(self):
+        """Decode discovery information command payload.
+
+        Payload:
+        - HiQnet Device
+        - Cost
+        - Serial Number
+        - Max Message size
+        - Keep alive period
+        - NetwordID
+        - NetworkInfo
+        """
+        # Message type
+        if self.flags.b.info:
+            print("DiscoInfo(I)")
+        else:
+            print("DiscoInfo(Q)")
+
+        index = 0
+
+        size = 2
+        print("Device address: ", end='')
+        print(struct.unpack('!H', self.payload[index:index + size])[0])
+        index += size
+
+        print("Cost: ", end='')
+        print(struct.unpack('!B', self.payload[index])[0])
+        index += 1
+
+        # TODO: extract this algo as the "BLOCK" type
+        size = 2
+        data_len = struct.unpack('!H', self.payload[index:index + size])[0]
+        index += size
+        size = data_len
+        print("Serial number: ", end='')
+        serial_number = ''
+        while size:
+            serial_number += struct.unpack('!s', self.payload[index])[0]
+            index += 1
+            size -= 1
+        print(serial_number)
+
+        size = 4
+        print("Max message size: ", end='')
+        print(struct.unpack('!L', self.payload[index:index + size])[0])
+        index += size
+
+        size = 2
+        print("Keep alive period: ", end='')
+        print(struct.unpack('!H', self.payload[index:index + size])[0])
+        index += size
+
+        print("NetworkID: ", end='')
+        network_id = struct.unpack('!B', self.payload[index])[0]
+        print(network_id)
+        index += 1
+
+        print("NetworkInfo: ", end='')
+        if network_id == NetworkInfo.NET_ID_TCP_IP:
+            # TCP/IP
+            size = 6
+            mac_address = "%02x:%02x:%02x:%02x:%02x:%02x" % struct.unpack("!BBBBBB", self.payload[index:index + size])
+            index += size
+
+            dhcp = bool(struct.unpack("B", self.payload[index])[0])
+            index += 1
+
+            size = 4
+            ip_address = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            index += size
+
+            size = 4
+            subnet_mask = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            index += size
+
+            size = 4
+            gateway_address = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            index += size
+
+            network_info = IPNetworkInfo(mac_address=mac_address, dhcp=dhcp,
+                                       ip_address=ip_address, subnet_mask=subnet_mask, gateway_address=gateway_address)
+
+            print(vars(network_info))  # DEBUG
+
+        elif network_id == NetworkInfo.NET_ID_RS232:
+            network_info = RS232NetworkInfo
+            raise NotImplementedError
+
+        else:
+            raise NotImplementedError
 
     def set_version(self, version):
         """Set the version.
@@ -297,27 +465,27 @@ class Message:
             raise ValueError("The header can't be smaller than " + str(MIN_HEADER_LEN))
         self.headerlen = headerlen
 
-    def set_messagelen(self, messagelen):
-        """ Set the message length
+    def set_commandlen(self, commandlen):
+        """ Set the command length
 
-        :param messagelen: Message lenght
-        :type messagelen: int
+        :param commandlen: Command lenght
+        :type commandlen: int
         """
-        if messagelen < self.headerlen or messagelen < MIN_HEADER_LEN:
-            raise ValueError("Message can't be smaller than the header")
-        self.messagelen = messagelen
+        if commandlen < self.headerlen or commandlen < MIN_HEADER_LEN:
+            raise ValueError("Command can't be smaller than the header")
+        self.commandlen = commandlen
 
     def disco_info(self, device, disco_type='Q'):
-        """Build a Discovery Information message.
+        """Build a Discovery Information command.
 
-        :param device: The HiQnet device sending the discovery message
+        :param device: The HiQnet device sending the discovery command
         :type device: Device
         """
         if disco_type == 'I':
             self.flags.info = 1
         else:
             self.flags.info = 0
-        self.message_id = MSG_DISCOINFO
+        self.message = Message(name='DISCOINFO')
         # Payload
         device_address = struct.pack('!H', self.source_address.device_address)
         cost = b'\x01'
@@ -331,7 +499,7 @@ class Message:
         serial_number = struct.pack('!16s', serial_number)  # May use utf-16-be == UCS-2
         max_message_size = struct.pack('!I', 65535)  # FIXME: should really be the server's buffer size
         keep_alive_period = struct.pack('!H', DEFAULT_KEEPALIVE)
-        network_id = ETHERNET_NETWORK_ID
+        network_id = struct.pack('!B', device.network_info.network_id)
         mac_address = binascii.unhexlify(device.network_info.mac_address.replace(':', ''))
         dhcp = struct.pack('!B', device.network_info.dhcp)
         ip_address = socket.inet_aton(device.network_info.ip_address)
@@ -342,61 +510,61 @@ class Message:
             + mac_address + dhcp + ip_address + subnet_mask + gateway_address
 
     def request_address(self, req_addr):
-        """Build a Request Address message.
+        """Build a Request Address command.
 
         :param req_addr:
         :type req_addr: int
         """
-        self.message_id = MSG_REQADDR
+        self.message = Message(name='REQADDR')
         self.payload = struct.pack('!H', req_addr)
 
     def address_used(self):
-        """Build an Address Used message."""
-        self.message_id = MSG_ADDRUSED
+        """Build an Address Used command."""
+        self.message = Message(name='ADDRUSED')
 
     def hello(self):
-        """Build an hello message.
+        """Build an hello command.
 
         Starts a session.
 
         :return: The session number
         :rtype: int
         """
-        self.message_id = MSG_HELLO
+        self.message = Message(name='HELLO')
         session_number = os.urandom(2)
         flag_mask = SUPPORTED_FLAG_MASK
         self.payload = session_number + flag_mask
         return session_number
 
     def get_attributes(self):
-        """Build a Get Attributes message."""
-        self.message_id = MSG_GETATTR
+        """Build a Get Attributes command."""
+        self.message = Message(name='GETATTR')
         raise NotImplementedError
 
-    def get_vd_list(self, workgroup=0):
-        """Build a Get VD List message."""
-        self.message_id = MSG_GETVDLIST
+    def get_vd_list(self, workgroup=''):
+        """Build a Get VD List command."""
+        self.message = Message(name='GETVDLIST')
         self.payload = workgroup
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def store(self):
-        """Build a Store message.
+        """Build a Store command.
 
         Stores current state to a preset.
         """
-        self.message_id = MSG_STORE
+        self.message = Message(name='STORE')
         raise NotImplementedError
 
     def recall(self):
-        """Build a Recall message.
+        """Build a Recall command.
 
         Recalls a preset.
         """
-        self.message_id = MSG_RECALL
+        self.message = Message(name='RECALL')
         raise NotImplementedError
 
     def locate(self, time, serial_number):
-        """Builds a Locate message.
+        """Builds a Locate command.
 
         The receiver makes itself visible. Usually this is done by flashing some LEDs on the front panel.
 
@@ -409,12 +577,12 @@ class Message:
 
         .. seealso:: :py:func:`locate_on`, :py:func:`locate_off`
         """
-        self.message_id = MSG_LOCATE
+        self.message = Message(name='LOCATE')
         serial_number_len = struct.pack('!H', len(serial_number))
         self.payload = time + serial_number_len + serial_number
 
     def locate_on(self, serial_number):
-        """Builds a locate message asking for the visual clue to be active.
+        """Builds a locate command asking for the visual clue to be active.
 
         :param serial_number: The target device's serial number
         :type serial_number: str
@@ -422,7 +590,7 @@ class Message:
         self.locate(b'\xff\xff', serial_number)
 
     def locate_off(self, serial_number):
-        """Builds a locate message asking for the visual clue to be inactive.
+        """Builds a locate command asking for the visual clue to be inactive.
 
         :param serial_number: The target device's serial number
         :type serial_number: str
@@ -430,7 +598,7 @@ class Message:
         self.locate(b'\x00\x00', serial_number)
 
     def _build_optional_headers(self):
-        """Builds the optional message headers."""
+        """Builds the optional command headers."""
         # Optional error header
         if self.flags.error:
             error_code = b'\x02'
@@ -453,33 +621,36 @@ class Message:
         """Computes the header length."""
         self.headerlen = MIN_HEADER_LEN + len(self.optional_headers)
 
-    def _compute_messagelen(self):
-        """Computes the message length."""
-        self.messagelen = len(self.payload) + self.headerlen
+    def _compute_commandlen(self):
+        """Computes the command length."""
+        self.commandlen = len(self.payload) + self.headerlen
 
     def _build_header(self):
-        """Builds the message header."""
+        """Builds the command header."""
         self._build_optional_headers()
         self._compute_headerlen()
-        self._compute_messagelen()
+        self._compute_commandlen()
         self.header = struct.pack('!B', self.version) \
             + struct.pack('!B', self.headerlen) \
-            + struct.pack('!L', self.messagelen) \
+            + struct.pack('!L', self.commandlen) \
             + bytes(self.source_address) + bytes(self.destination_address) \
-            + bytes(self.message_id) \
+            + bytes(self.message) \
             + bytes(self.flags) \
             + struct.pack('!B', self.hop_counter) \
             + struct.pack('!H', self.sequence_number) \
             + bytes(self.optional_headers)
 
     def __bytes__(self):
-        """Get the message as bytes."""
+        """Get the command as bytes."""
         self._build_header()
         return self.header + self.payload
 
     def __str__(self):
-        """Get the message in a printable form."""
+        """Get the command in a printable form."""
         return self.__bytes__()
+
+    def __repr__(self):
+        return vars(self)
 
 # TODO: Event logs
 # TODO: Session

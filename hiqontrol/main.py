@@ -100,7 +100,7 @@ class Control:
         c = hiqnet.service.ip.Connection(self.udp_transport, self.tcp_transport)
         source_address = self.source_device.get_address()
         destination_address = hiqnet.protocol.FullyQualifiedAddress(device_address=hiqnet_dest)
-        message = hiqnet.protocol.Message(source=source_address, destination=destination_address)
+        message = hiqnet.protocol.Command(source=source_address, destination=destination_address)
         return c, message
 
     def locate_toggle(self, hiqnet_dest, ip_dest, serial_dest):
@@ -253,7 +253,7 @@ class HiQontrolApp(App):
         Only display it on screen for debugging right now
 
         :param message: HiQnet message
-        :type message: hiqnet.protocol.Message
+        :type message: hiqnet.protocol.Command
         :param: host: IPv4 host address
         :param protocol: Protocol that received
         :type protocol: str

@@ -9,6 +9,51 @@ import netifaces
 
 
 class NetworkInfo:
+    """Network informations."""
+    NET_ID_TCP_IP = 1
+    NET_ID_RS232 = 4
+
+    network_id = None
+    """
+    - 1: TCP/IP
+    - 2: reserved
+    - 3: reserved
+    - 4: RS232
+    """
+
+    def __init__(self, network_id=NET_ID_TCP_IP):
+        self.network_id = network_id
+
+class RS232NetworkInfo(NetworkInfo):
+    """RS232 network informations.
+
+    TODO: RS232 Network info
+    com_id    1 byte
+    baud_rate 4 bytes
+    parity    1 byte
+      0 - None
+      1 - Odd
+      2 - Even
+      3 - Mark
+      4 - Space
+    stop_bits 1 byte
+      0 - 1 bit
+      1 - 1.5 bits
+      2 - 2 bits
+    data_bits 1 byte
+      4-9
+    flow_control  1_byte
+      0 - None
+      1 - Hardware
+      2 - XON/OFF
+    """
+
+    def __init__(self):
+        self.network_id = self.NET_ID_RS232
+        raise NotImplementedError
+
+
+class IPNetworkInfo(NetworkInfo):
     """IPv4 network informations."""
     mac_address = None
     dhcp = True
@@ -35,6 +80,7 @@ class NetworkInfo:
         :param gateway_address: IPv4 gateway address
         :type gateway_address: str
         """
+        self.network_id = self.NET_ID_TCP_IP
         self.mac_address = mac_address
         self.dhcp = dhcp
         self.gateway_address = gateway_address

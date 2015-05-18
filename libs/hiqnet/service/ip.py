@@ -8,7 +8,7 @@ __author__ = 'Raphaël Doursenaud'
 import binascii
 from twisted.internet import protocol
 
-from protocol import Message
+from protocol import Command
 
 PORT = 3804  # IANA declared as IQnet. Go figure.
 
@@ -33,23 +33,23 @@ class Connection:
         self.udp_transport = udp_transport
         self.tcp_transport = tcp_transport
 
-    def sendto(self, message, destination='<broadcast>'):
-        """Send message to the destination.
+    def sendto(self, command, destination='<broadcast>'):
+        """Send command to the destination.
 
-        :param message: Message to send
-        :type message: Message
+        :param command: Message to send
+        :type command: Command
         :param destination: Destination IPv4 address or '<broadcast>'
         :type destination: str
         """
-        if message.flags.guaranteed:
+        if command.flags.guaranteed:
             # Send TCP message if the Guaranteed flag is set
             # noinspection PyArgumentList
-            self.tcp_transport.write(bytes(message), (destination, PORT))
+            self.tcp_transport.write(bytes(command), (destination, PORT))
         else:
             # noinspection PyArgumentList
-            self.udp_transport.write(bytes(message), (destination, PORT))
+            self.udp_transport.write(bytes(command), (destination, PORT))
         print("=>")  # DEBUG
-        print(vars(message))  # DEBUG
+        print(vars(command))  # DEBUG
 
 
 # noinspection PyClassHasNoInit
@@ -72,11 +72,11 @@ class TCPProtocol(protocol.Protocol):
         print("<=")
         print(self.name + " data:")
         print(binascii.hexlify(data))
-        message = Message(message=data)
-        print(vars(message))  # DEBUG
+        command = Command(command=data)
+        print(vars(command))  # DEBUG
 
         # TODO: Process some more :)
-        self.factory.app.handle_message(message, None, self.name)
+        self.factory.app.handle_message(command, None, self.name)
 
 
 class UDPProtocol(protocol.DatagramProtocol):
@@ -110,11 +110,11 @@ class UDPProtocol(protocol.DatagramProtocol):
         print(host, end="")
         print(":", end="")
         print(port)
-        message = Message(message=data)
-        print(vars(message))  # DEBUG
+        command = Command(command=data)
+        print(vars(command))  # DEBUG
 
         # TODO: Process some more :)
-        self.app.handle_message(message, host, self.name)
+        self.app.handle_message(command, host, self.name)
 
 
 class Factory(protocol.Factory):

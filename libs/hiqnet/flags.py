@@ -45,6 +45,9 @@ class DeviceFlagsBits(ctypes.LittleEndianStructure):
             string += name + ":" + str(getattr(self, name)) + " "
         return string
 
+    def __repr__(self):
+        return self.__str__()
+
 
 class DeviceFlags(ctypes.Union):
     """Device flags."""
@@ -66,6 +69,9 @@ class DeviceFlags(ctypes.Union):
 
     def __radd__(self, other):
         return other + str(self)
+
+    def __repr__(self):
+        return self.b.__repr__()
 
 
 class ParameterFlagsBits(ctypes.LittleEndianStructure):
@@ -92,6 +98,8 @@ class ParameterFlagsBits(ctypes.LittleEndianStructure):
             string += name + ":" + str(getattr(self, name)) + " "
         return string
 
+    def __repr__(self):
+        return self.__str__()
 
 class ParameterFlags(ctypes.Union):
     """Parameter flags."""
@@ -113,3 +121,6 @@ class ParameterFlags(ctypes.Union):
 
     def __radd__(self, other):
         return other + str(self)
+
+    def __repr__(self):
+        return self.b.__repr__()
