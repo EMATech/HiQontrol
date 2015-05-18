@@ -1,0 +1,11 @@
+product:
+  - virtual_devices:
+    - device_manager:
+      - class: Static ## TODO
+      - name: Instance+Dynamic
+      - flags: Instance
+      - serial_number: Instance
+      - software_version: Instance
+    - 1:
+      - class: Static ## TODO
+      - name: Instance+Dynamic
