@@ -18,7 +18,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.listview import CompositeListItem, ListItemButton
 from kivy.support import install_twisted_reactor
 
-from hiqnet import hiqnet
+import hiqnet
 from soundcraft import soundcraft
 
 if __name__ == '__main__':
@@ -26,8 +26,8 @@ if __name__ == '__main__':
     from twisted.internet import reactor
 
 # FIXME: this should not be hardcoded but autodetected
-SI_COMPACT_16_IP = '192.168.1.53'
-SI_COMPACT_16_DEVICE_ADDRESS = 27904  # 0x653
+SI_COMPACT_16_IP = '192.168.1.5'
+SI_COMPACT_16_DEVICE_ADDRESS = 1619
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 
 APPNAME = 'HiQontrol'
@@ -97,10 +97,10 @@ class Control:
         self.tcp_transport = tcp_transport
 
     def init(self, hiqnet_dest):
-        c = hiqnet.Connection(self.udp_transport, self.tcp_transport)
-        source_address = hiqnet.FullyQualifiedAddress(device_address=self.source_device._hiqnet_address)
-        destination_address = hiqnet.FullyQualifiedAddress(device_address=hiqnet_dest)
-        message = hiqnet.Message(source=source_address, destination=destination_address)
+        c = hiqnet.service.ip.Connection(self.udp_transport, self.tcp_transport)
+        source_address = self.source_device.get_address()
+        destination_address = hiqnet.protocol.FullyQualifiedAddress(device_address=hiqnet_dest)
+        message = hiqnet.protocol.Message(source=source_address, destination=destination_address)
         return c, message
 
     def locate_toggle(self, hiqnet_dest, ip_dest, serial_dest):
@@ -124,12 +124,12 @@ class HiQontrolApp(App):
     store_needs_update = False
     device = None
     try:
-        device = hiqnet.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
+        device = hiqnet.device.Device(datastore.get('device_name')['value'], datastore.get('device_address')['value'])
     except KeyError:
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
         device_name = APPNAME
-        device_address = hiqnet.Device.negotiate_address()
-        device = hiqnet.Device(device_name, device_address)
+        device_address = hiqnet.device.Device.negotiate_address()
+        device = hiqnet.device.Device(device_name, device_address)
         datastore.put('device_name', value=device_name)
         datastore.put('device_address', value=device_address)
     control = None
@@ -138,8 +138,8 @@ class HiQontrolApp(App):
     tcp_transport = None
 
     def build(self):
-        reactor.listenTCP(hiqnet.IP_PORT, hiqnet.Factory(self))
-        reactor.listenUDP(hiqnet.IP_PORT, hiqnet.UDPProtocol(self))
+        reactor.listenTCP(hiqnet.service.ip.PORT, hiqnet.service.ip.Factory(self))
+        reactor.listenUDP(hiqnet.service.ip.PORT, hiqnet.service.ip.UDPProtocol(self))
         reactor.listenUDP(soundcraft.VUMETER_IP_PORT, soundcraft.VuMeterUDPPRotocol(self))
         self.title = APPNAME
         self.icon = 'assets/icon.png'
@@ -163,8 +163,8 @@ class HiQontrolApp(App):
             self.datastore.put('device_name', value=name)
             self.datastore.put('device_address', value=int(address))
             Logger.info(APPNAME + ": Store updated, reloading device")
-            self.device = hiqnet.Device(self.datastore.get('device_name')['value'],
-                                        self.datastore.get('device_address')['value'])
+            self.device = hiqnet.device.Device(self.datastore.get('device_name')['value'],
+                                               self.datastore.get('device_address')['value'])
             self.control = Control(self.device, self.udp_transport, self.tcp_transport)
             self.store_needs_update = False
 
@@ -253,7 +253,7 @@ class HiQontrolApp(App):
         Only display it on screen for debugging right now
 
         :param message: HiQnet message
-        :type message: hiqnet.Message
+        :type message: hiqnet.protocol.Message
         :param: host: IPv4 host address
         :param protocol: Protocol that received
         :type protocol: str

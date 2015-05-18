@@ -6,17 +6,11 @@ from __future__ import print_function
 __author__ = 'Raphaël Doursenaud'
 
 import itertools
-import struct
 import os
-import netifaces
 import socket
-import random
 import binascii
-from .flags import *
 
-from twisted.internet import protocol
-
-IP_PORT = 3804  # IANA declared as IQnet. Go figure.
+from flags import *
 
 PROTOCOL_VERSION = 2
 PROTOCOL_MIN_VERSION = 1
@@ -70,183 +64,6 @@ MSG_LOCATE               = b'\x01\x29'
 MSG_UNSUBEVTLOGMSGS      = b'\x01\x2b'
 MSG_REQEVTLOG            = b'\x01\x2c'
 
-# HiQnet structure
-# Node (Device)
-#  \- At least one virtual device (The first is the device manager)
-#     \- Parameters and/or objects
-#                              \- Objects contains parameters and/or other objects
-#
-# Attributes everywhere
-#   Either STATIC, Instance or Instance+Dynamic
-#
-# Virtual devices, objects and parameters
-#   Have a Class Name and a Class ID
-
-
-class Attribute:
-    """Member variables of the HiQnet architecture.
-
-    Static are basically constants.
-    Instance are variables that are set at device bootup.
-    Instance+Dynamic are regular variables that can change during the life of the device.
-    """
-    # FIXME: Use it?
-    type = None
-    _data_type = None
-    _value = None
-    _allowed_types = [
-        'Static',
-        'Instance',
-        'Instance+Dynamic'
-    ]
-
-    def __init__(self, atr_type):
-        """Build an attribute.
-
-        :param atr_type:  The attribute type
-        :type atr_type: str
-        :return:
-        """
-        if atr_type in self._allowed_types:
-            self.type = atr_type
-            return
-        raise ValueError
-
-class Object:
-    """HiQnet objects.
-
-    May contain other objects or parameters.
-    """
-
-
-class Parameter:
-    """HiQnet parameters.
-
-    Represents the manipulable elements and their attributes.
-    """
-    data_type = None  # STATIC FIXME: needs doc
-    name_string = ''  # Instance+Dynamic
-    minimum_value = None  # Depends on data_type
-    maximum_value = None  # Depends on data_type
-    control_law = None
-    flags = ParameterFlags()
-
-
-class NetworkInfo:
-    """IPv4 network informations."""
-    mac_address = None
-    dhcp = True
-    ip_address = None
-    subnet_mask = None
-    gateway = None
-
-    def __init__(self,
-                 mac_address,
-                 dhcp,
-                 ip_address,
-                 subnet_mask,
-                 gateway_address='0.0.0.0'):
-        """Network information from a device.
-
-        :param mac_address: MAC address
-        :type mac_address: str
-        :param dhcp: Address obtained by DHCP
-        :type dhcp: bool
-        :param ip_address: IPv4 address
-        :type ip_address: str
-        :param subnet_mask: IPv4 network mask
-        :type subnet_mask: str
-        :param gateway_address: IPv4 gateway address
-        :type gateway_address: str
-        :return:
-        """
-        self.mac_address = mac_address
-        self.dhcp = dhcp
-        self.gateway_address = gateway_address
-        self.ip_address = ip_address
-        self.subnet_mask = subnet_mask
-
-    @classmethod
-    def autodetect(cls):
-        """Get infos from the interface.
-
-        We assume that interface to the default gateway is the one we want.
-
-        :type cls: NetworkInfo
-        :rtype: NetworkInfo
-        """
-        # FIXME: this may fail
-        iface = netifaces.gateways()['default'][netifaces.AF_INET][1]
-        addrs = netifaces.ifaddresses(iface)
-        mac_address = addrs[netifaces.AF_LINK][0]['addr']
-        try:
-            mac_address.decode('ascii')
-        except UnicodeDecodeError:
-            # We got Garbage (Android bug?), let's default to something sane
-            mac_address = '00:00:00:00:00:00'
-        except AttributeError:
-            # We are running Python 3
-            try:
-                # noinspection PyArgumentList
-                bytes(mac_address, 'ascii')
-            except UnicodeDecodeError:
-                # We got Garbage (Android bug?), let's default to something sane
-                mac_address = '00:00:00:00:00:00'
-        ip_address = addrs[netifaces.AF_INET][0]['addr']
-        subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
-        gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        # Seems impossible to know. Let's say it is.
-        dhcp = True
-        return cls(mac_address, dhcp, ip_address, subnet_mask, gateway_address)
-
-
-class VirtualDevice:
-    """Describes a HiQnet virtual device.
-
-    This is the basic container object type.
-    """
-    class_name = Attribute('Static')
-    name_string = Attribute('Instance+Dynamic')
-    objects = None
-    parameters = None
-    attributes = None
-
-
-class DeviceManager(VirtualDevice):
-    """Describes a HiQnet device manager.
-
-    Each device has one and this is always the first virtual device.
-    """
-    flags = DeviceFlags()
-    serial_number = None
-    software_version = None
-
-    def __init__(self,
-                 name_string,
-                 class_name=None,
-                 flags=0,
-                 serial_number=None,
-                 software_version=None):
-        """Init an HiQnet device manager.
-
-        :param name_string: The device name. This can be changed by the user
-        :type name_string: str
-        :param class_name: The device's registered hiqnet type.
-        :type class_name: str
-        :type flags: bytearray
-        :type serial_number:
-        :type software_version: str
-        """
-        if not class_name:
-            class_name = name_string
-        self.class_name = class_name
-        self.name_string = name_string
-        self.flags.asByte = flags
-        if not serial_number:
-            serial_number = name_string
-        self.serial_number = serial_number
-        self.software_version = software_version
-
 
 class FullyQualifiedAddress:
     """Fully Qualified HiQnet Address."""
@@ -255,10 +72,10 @@ class FullyQualifiedAddress:
     object_address = None
 
     def __init__(self,
-                 devicevdobject=None,
                  device_address=None,
                  vd_address=b'\x00',
                  object_address=b'\x00\x00\x00',
+                 devicevdobject=None,
                  ):
         """Build a Fully Qualified HiQnet Address.
 
@@ -290,9 +107,10 @@ class FullyQualifiedAddress:
     def broadcast_address(cls):
         """Get the Fully Qualified HiQnet Broadcast Address.
 
-        :type cls: NetworkInfo
-        :rtype: NetworkInfo
+        :type cls: FullyQualifiedAddress
+        :rtype: FullyQualifiedAddress
         """
+        # noinspection PyCallingNonCallable
         return cls(device_address=65535, vd_address=b'\x00', object_address=b'\x00\x00\x00')
 
     def __bytes__(self):
@@ -390,7 +208,7 @@ class Message:
 
     payload = b''  # Placeholder, filled later, depends on the message
 
-    def __init__(self, message=None, source=None, destination=None):
+    def __init__(self, source=None, destination=None, message=None):
         """Initiate an HiQnet message from source to destination.
 
         :param source: Source of the message
@@ -400,7 +218,7 @@ class Message:
         :return:
         """
         if message:
-            self.decode_message(message)
+            self.decode_message(message=message)
         else:
             self.source_address = source
             self.destination_address = destination
@@ -447,18 +265,31 @@ class Message:
         # TODO: decode payload by message type
 
     def set_version(self, version):
-        """Set the version."""
+        """Set the version.
+
+        :param version: Version number.
+        :type version: int
+        """
         if not PROTOCOL_MIN_VERSION <= version <= PROTOCOL_MAX_VERSION:
             raise ValueError("This HiQnet version is unknown.")
         self.version = version
 
     def set_headerlen(self, headerlen):
-        """Set the header length."""
+        """Set the header length.
+
+        :param headerlen: Header length
+        :type headerlen: int
+        """
         if headerlen < MIN_HEADER_LEN:
-            raise ValueError("The header can't be smaller than " + MIN_HEADER_LEN)
+            raise ValueError("The header can't be smaller than " + str(MIN_HEADER_LEN))
         self.headerlen = headerlen
 
     def set_messagelen(self, messagelen):
+        """ Set the message length
+
+        :param messagelen: Message lenght
+        :type messagelen: int
+        """
         if messagelen < self.headerlen or messagelen < MIN_HEADER_LEN:
             raise ValueError("Message can't be smaller than the header")
         self.messagelen = messagelen
@@ -529,9 +360,10 @@ class Message:
         self.message_id = MSG_GETATTR
         raise NotImplementedError
 
-    def get_vd_list(self):
+    def get_vd_list(self, workgroup=0):
         """"Build a Get VD List message."""
         self.message_id = MSG_GETVDLIST
+        self.payload = workgroup
         raise NotImplementedError
 
     def store(self):
@@ -640,148 +472,3 @@ class Message:
 # TODO: Session
 
 # TODO: Device arrival announce
-
-
-class Device:
-    """Describes a device (aka node)."""
-    _hiqnet_address = None
-    """:type : int Allowed values: 1 to 65534. 65535 is reserved as the broadcast address"""
-    network_info = NetworkInfo.autodetect()
-    manager = None
-    virtual_devices = None
-
-    def __init__(self, name, hiqnet_address):
-        self.manager = DeviceManager(name)
-        self.set_hiqnet_address(hiqnet_address)
-
-    def set_hiqnet_address(self, address):
-        if 1 > address > 65534:
-            raise ValueError
-        self._hiqnet_address = address
-
-    @staticmethod
-    def negotiate_address():
-        """Generates a random HiQnet address to datastore and reuse on the device.
-
-        The address is automatically checked on the network.
-        """
-        requested_address = random.randrange(1, 65535)
-        # connection = Connection()
-        # message = Message(source=FullyQualifiedAddress(device_address=0),
-        #                        destination=FullyQualifiedAddress.broadcast_address())
-        # message.request_address(self, requested_address)
-        # connection.sendto('<broadcast>')
-        # FIXME: look for address_used reply messages and renegotiate if found
-        raise NotImplementedError
-        return requested_address
-
-
-class Connection:
-    """Handles HiQnet IP connection.
-
-    .. warning:: Other connection types such as RS232, RS485 or USB are not handled yet.
-    """
-    udp_transport = None
-    tcp_transport = None
-
-    def __init__(self, udp_transport, tcp_transport):
-        """Initiate a HiQnet IP connection over UDP and TCP.
-
-        :param udp_transport: Twisted UDP transport
-        :type udp_transport: twisted.internet.interfaces.IUDPTransport
-        :param tcp_transport: Twisted TCP transport
-        :type tcp_transport: twisted.internet.interfaces.ITCPTransport
-        :return:
-        """
-        self.udp_transport = udp_transport
-        self.tcp_transport = tcp_transport
-
-    def sendto(self, message, destination='<broadcast>'):
-        """Send message to the destination.
-
-        :param message: Message to send
-        :type message: Message
-        :param destination: Destination IPv4 address or '<broadcast>'
-        :type destination: str
-        """
-        if message.flags.guaranteed:
-            # Send TCP message if the Guaranteed flag is set
-            self.tcp_transport.write(bytes(message), (destination, IP_PORT))
-        else:
-            self.udp_transport.write(bytes(message), (destination, IP_PORT))
-        print("=>")  # DEBUG
-        print(vars(message))  # DEBUG
-
-
-# noinspection PyClassHasNoInit
-class TCPProtocol(protocol.Protocol):
-    """HiQnet Twisted TCP protocol."""
-
-    name = "HiQnetTCP"
-
-    def startProtocol(self):
-        """Called after protocol started listening."""
-        self.factory.app.tcp_transport = self.transport
-
-    def dataReceived(self, data):
-        """Called when data is received.
-
-        :param data: Received binary data
-        :type data: bytearray
-        """
-        # FIXME: debugging output should go into a logger
-        print("<=")
-        print(self.name + " data:")
-        print(binascii.hexlify(data))
-        message = Message(data)
-        print(vars(message))  # DEBUG
-
-        # TODO: Process some more :)
-        self.factory.app.handle_message(message, None, self.name)
-
-
-class UDPProtocol(protocol.DatagramProtocol):
-    """HiQnet Twisted UDP protocol."""
-
-    name = "HiQnetUDP"
-
-    def __init__(self, app):
-        self.app = app
-
-    def startProtocol(self):
-        """Called after protocol started listening."""
-        self.transport.setBroadcastAllowed(True)  # Some messages needs to be broadcasted
-        self.app.udp_transport = self.transport
-
-    def datagramReceived(self, data, addr):
-        """Called when data is received.
-
-        :param data: Received binary data
-        :type data: bytearray
-        :param addr: IPv4 address and port of the sender
-        :type addr: tuple
-        """
-        (host, port) = addr
-
-        # FIXME: debugging output should go into a logger
-        print("<=")
-        print(self.name + "data:")
-        print(binascii.hexlify(data))
-        print("from ", end="")
-        print(host, end="")
-        print(":", end="")
-        print(port)
-        message = Message(data)
-        print(vars(message))  # DEBUG
-
-        # TODO: Process some more :)
-        self.app.handle_message(message, host, self.name)
-
-
-class Factory(protocol.Factory):
-    """HiQnet Twisted Factory."""
-
-    protocol = TCPProtocol
-
-    def __init__(self, app):
-        self.app = app

@@ -2,4 +2,6 @@
 
 __author__ = 'Raphaël Doursenaud'
 
-import soundcraft
+__all__ = ['ip']
+
+import ip

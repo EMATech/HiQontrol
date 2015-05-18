@@ -13,6 +13,7 @@ import struct
 
 c_uint16 = ctypes.c_uint16
 
+
 class DeviceFlagsBits(ctypes.LittleEndianStructure):
     """Bitfields for the device flags."""
     _fields_ = [
@@ -40,7 +41,7 @@ class DeviceFlagsBits(ctypes.LittleEndianStructure):
         Useful for debugging purposes
         """
         string = ''
-        for name, type, len in self._fields_:
+        for name, ctype, length in self._fields_:
             string += name + ":" + str(getattr(self, name)) + " "
         return string
 
@@ -87,7 +88,7 @@ class ParameterFlagsBits(ctypes.LittleEndianStructure):
         Useful for debugging purposes
         """
         string = ''
-        for name, type, len in self._fields_:
+        for name, ctype, length in self._fields_:
             string += name + ":" + str(getattr(self, name)) + " "
         return string
 
