@@ -1,13 +1,31 @@
-hiqnet package
+HiQnet package
 ==============
 
 Submodules
 ----------
 
-hiqnet.hiqnet module
+hiqnet.protocol module
+----------------------
+
+.. automodule:: hiqnet.protocol
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+hiqnet.device module
 --------------------
 
-.. automodule:: hiqnet.hiqnet
+.. automodule:: hiqnet.device
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+hiqnet.networkinfo module
+-------------------------
+
+.. automodule:: hiqnet.networkinfo
     :members:
     :undoc-members:
     :show-inheritance:
@@ -22,10 +40,10 @@ hiqnet.flags module
     :show-inheritance:
 
 
-Module contents
----------------
+hiqnet.service.ip module
+------------------------
 
-.. automodule:: hiqnet
+.. automodule:: hiqnet.service.ip
     :members:
     :undoc-members:
     :show-inheritance:

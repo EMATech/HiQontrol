@@ -168,18 +168,31 @@ class Message:
     """
     flags = DeviceFlags()  # 2 bytes
     """
-    The Flags denote what kinds of options are active when set to ‘1’ and are
-    allocated in the following manner:
-    +----------+-------------------+----------+--------------------+------------+----------+--------------------+
-    | Bit 15-9 | Bit 8             | Bit 7    | Bit 6              | Bit 5      | Bit 4    | Bit 3              |
-    +----------+-------------------+----------+--------------------+------------+----------+--------------------+
-    | Reserved | Session number    | Reserved | Multi-part message | Guaranteed | Reserved | Error              |
-    |          |(Header extension) |          |(Header extension)  |            |          | (Header extension) |
-    +----------+--+----------------++---------+---------------+----+------------+----------+--------------------+
-    | Bit 2       | Bit 1           | Bit 0                   |
-    +-------------+-----------------+-------------------------+
-    | Information | Acknowledgement | Request Acknowledgement |
-    +-------------+-----------------+-------------------------+
+    The Flags denote what kinds of options are active when set to ‘1’.
+
+    They are allocated in the following manner:
+
+    +----------+-------------------+
+    | Bit 15-9 | Bit 8             |
+    +==========+===================+
+    | Reserved | Session number    |
+    |          |(Header extension) |
+    +----------+-------------------+
+
+    +----------+--------------------+------------+----------+
+    | Bit 7    | Bit 6              | Bit 5      | Bit 4    |
+    +==========+====================+============+==========+
+    | Reserved | Multi-part message | Guaranteed | Reserved |
+    |          |(Header extension)  |            |          |
+    +----------+--------------------+------------+----------+
+
+    +--------------------+-------------+-----------------+-------------------------+
+    | Bit 3              | Bit 2       | Bit 1           | Bit 0                   |
+    +====================+=============+=================+=========================+
+    | Error              | Information | Acknowledgement | Request Acknowledgement |
+    | (Header extension) |             |                 |                         |
+    +--------------------+-------------+-----------------+-------------------------+
+
     Bit 5 must be set for any applications using TCP/IP only on the network
     interface. This will ensure that any messages are sent guaranteed (TCP rather
     than UDP).
@@ -361,7 +374,7 @@ class Message:
         raise NotImplementedError
 
     def get_vd_list(self, workgroup=0):
-        """"Build a Get VD List message."""
+        """Build a Get VD List message."""
         self.message_id = MSG_GETVDLIST
         self.payload = workgroup
         raise NotImplementedError
@@ -394,7 +407,7 @@ class Message:
         :param serial_number: The target device's serial number
         :type serial_number: str
 
-        .. seealso:: locate_on(), locate_off()
+        .. seealso:: :py:func:`locate_on`, :py:func:`locate_off`
         """
         self.message_id = MSG_LOCATE
         serial_number_len = struct.pack('!H', len(serial_number))

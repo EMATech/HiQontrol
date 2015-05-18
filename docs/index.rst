@@ -9,10 +9,10 @@ Welcome to HiQontrol's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 4
 
-   reverse
-   code
+    reverse
+    code
 
 Indices and tables
 ==================

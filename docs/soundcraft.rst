@@ -1,4 +1,4 @@
-soundcraft package
+Soundcraft package
 ==================
 
 Submodules
@@ -6,15 +6,6 @@ Submodules
 
 soundcraft.soundcraft module
 ----------------------------
-
-.. automodule:: soundcraft.soundcraft
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
 
 .. automodule:: soundcraft
     :members:

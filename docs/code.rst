@@ -2,8 +2,8 @@ Source code
 ===========
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 4
 
-   main
-   hiqnet
-   soundcraft
+    hiqnet
+    soundcraft
+    main

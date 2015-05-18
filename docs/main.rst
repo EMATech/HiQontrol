@@ -1,4 +1,4 @@
-main script
+Main script
 ===========
 
 .. automodule:: main

@@ -19,7 +19,7 @@ from kivy.uix.listview import CompositeListItem, ListItemButton
 from kivy.support import install_twisted_reactor
 
 import hiqnet
-from soundcraft import soundcraft
+import soundcraft
 
 if __name__ == '__main__':
     install_twisted_reactor()
@@ -140,7 +140,7 @@ class HiQontrolApp(App):
     def build(self):
         reactor.listenTCP(hiqnet.service.ip.PORT, hiqnet.service.ip.Factory(self))
         reactor.listenUDP(hiqnet.service.ip.PORT, hiqnet.service.ip.UDPProtocol(self))
-        reactor.listenUDP(soundcraft.VUMETER_IP_PORT, soundcraft.VuMeterUDPPRotocol(self))
+        reactor.listenUDP(soundcraft.ip.VUMETER_IP_PORT, soundcraft.ip.VuMeterUDPPRotocol(self))
         self.title = APPNAME
         self.icon = 'assets/icon.png'
         self.screen = HiQontrol(list=self.populate())
