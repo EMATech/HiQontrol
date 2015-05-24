@@ -8,7 +8,7 @@ __author__ = 'Raphaël Doursenaud'
 import netifaces
 
 
-class NetworkInfo:
+class NetworkInfo(object):
     """Network informations."""
     NET_ID_TCP_IP = 1
     NET_ID_RS232 = 4
@@ -49,7 +49,7 @@ class RS232NetworkInfo(NetworkInfo):
     """
 
     def __init__(self):
-        self.network_id = self.NET_ID_RS232
+        super(RS232NetworkInfo, self).__init__(network_id=self.NET_ID_RS232)
         raise NotImplementedError
 
 
@@ -80,7 +80,7 @@ class IPNetworkInfo(NetworkInfo):
         :param gateway_address: IPv4 gateway address
         :type gateway_address: str
         """
-        self.network_id = self.NET_ID_TCP_IP
+        super(IPNetworkInfo, self).__init__(network_id=self.NET_ID_TCP_IP)
         self.mac_address = mac_address
         self.dhcp = dhcp
         self.gateway_address = gateway_address

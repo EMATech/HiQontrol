@@ -85,7 +85,7 @@ class HiQNetAddressInput(TextInput):
         return super(HiQNetAddressInput, self).insert_text(s, from_undo=from_undo)
 
 
-class Control:
+class Control(object):
     locate = False
     source_device = None
     udp_transport = None

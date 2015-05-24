@@ -23,7 +23,7 @@ from protocol import FullyQualifiedAddress
 import random
 
 
-class Attribute:
+class Attribute(object):
     """Member variables of the HiQnet architecture.
 
     Static are basically constants.
@@ -52,7 +52,7 @@ class Attribute:
         raise ValueError
 
 
-class Object:
+class Object(object):
     """HiQnet objects.
 
     May contain other objects or parameters.
@@ -74,7 +74,7 @@ class Parameter(Object):
     flags = ParameterFlags()
 
 
-class VirtualDevice:
+class VirtualDevice(object):
     """Describes a HiQnet virtual device.
 
     This is the basic container object type.
@@ -124,7 +124,7 @@ class DeviceManager(VirtualDevice):
         self.software_version = software_version
 
 
-class Device:
+class Device(object):
     """Describes a device (aka node)."""
     _hiqnet_address = None
     """:type : int Allowed values: 1 to 65534. 65535 is reserved as the broadcast address"""

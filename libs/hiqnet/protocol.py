@@ -28,7 +28,7 @@ SUPPORTED_FLAG_MASK = DEFAULT_FLAG_MASK
 DEFAULT_KEEPALIVE = 10000  # ms
 
 
-class Message:
+class Message(object):
     """HiQnet messages handling."""
 
     MESSAGES = {
@@ -123,7 +123,7 @@ class Message:
         return self.name
 
 
-class FullyQualifiedAddress:
+class FullyQualifiedAddress(object):
     """Fully Qualified HiQnet Address."""
     device_address = None
     vd_address = None
@@ -186,7 +186,7 @@ class FullyQualifiedAddress:
             '.' + "%d.%d.%d" % struct.unpack('!BBB', self.object_address)
 
 
-class Command:
+class Command(object):
     """HiQnet command."""
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'

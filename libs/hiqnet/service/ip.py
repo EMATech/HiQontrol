@@ -13,7 +13,7 @@ from protocol import Command
 PORT = 3804  # IANA declared as IQnet. Go figure.
 
 
-class Connection:
+class Connection(object):
     """Handles HiQnet IP connection.
 
     .. warning:: Other connection types such as RS232, RS485 or USB are not handled yet.

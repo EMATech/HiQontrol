@@ -46,7 +46,7 @@ def init_logging():
 
     return l
 
-class App:
+class App(object):
     """A dummy app to handle twisted callbacks."""
     udp_transport = None
     tcp_transport = None
