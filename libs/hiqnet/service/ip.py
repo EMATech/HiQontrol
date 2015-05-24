@@ -58,6 +58,7 @@ class TCPProtocol(protocol.Protocol):
 
     name = "HiQnetTCP"
 
+    # noinspection PyPep8Naming
     def startProtocol(self):
         """Called after protocol started listening."""
         self.factory.app.tcp_transport = self.transport

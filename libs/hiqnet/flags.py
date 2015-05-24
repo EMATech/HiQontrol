@@ -101,6 +101,7 @@ class ParameterFlagsBits(ctypes.LittleEndianStructure):
     def __repr__(self):
         return self.__str__()
 
+
 class ParameterFlags(ctypes.Union):
     """Parameter flags."""
     _fields_ = [

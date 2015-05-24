@@ -434,7 +434,8 @@ class Command(object):
             index += size
 
             network_info = IPNetworkInfo(mac_address=mac_address, dhcp=dhcp,
-                                       ip_address=ip_address, subnet_mask=subnet_mask, gateway_address=gateway_address)
+                                         ip_address=ip_address, subnet_mask=subnet_mask,
+                                         gateway_address=gateway_address)
 
             print(vars(network_info))  # DEBUG
 

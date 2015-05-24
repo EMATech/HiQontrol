@@ -24,6 +24,7 @@ class NetworkInfo(object):
     def __init__(self, network_id=NET_ID_TCP_IP):
         self.network_id = network_id
 
+
 class RS232NetworkInfo(NetworkInfo):
     """RS232 network informations.
 
