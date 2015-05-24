@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0" />
+  </component>
+  <component name="IdProvider" IDEtalkID="12CCD11D0314D5AB5DC110A947FF9DF5" />
+  <component name="ProjectKey">
+    <option name="state" value="git@github.com:EMATech/HiQontrol.git" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 2.7.9 (/usr/bin/python2.7)" project-jdk-type="Python SDK" />
+  <component name="TaskProjectConfiguration">
+    <server type="GitHub" url="https://github.com" />
+  </component>
+</project>
