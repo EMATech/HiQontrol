@@ -28,26 +28,34 @@ class NetworkInfo(object):
 class RS232NetworkInfo(NetworkInfo):
     """RS232 network informations.
 
-    TODO: RS232 Network info
-    com_id    1 byte
-    baud_rate 4 bytes
-    parity    1 byte
-      0 - None
-      1 - Odd
-      2 - Even
-      3 - Mark
-      4 - Space
-    stop_bits 1 byte
-      0 - 1 bit
-      1 - 1.5 bits
-      2 - 2 bits
-    data_bits 1 byte
-      4-9
-    flow_control  1_byte
-      0 - None
-      1 - Hardware
-      2 - XON/OFF
-    """
+.. note:: Not implemented
+
+- com_id    1 byte
+- baud_rate 4 bytes
+- parity    1 byte
+
+    - 0 - None
+    - 1 - Odd
+    - 2 - Even
+    - 3 - Mark
+    - 4 - Space
+
+- stop_bits 1 byte
+
+    - 0 - 1 bit
+    - 1 - 1.5 bits
+    - 2 - 2 bits
+
+- data_bits 1 byte
+
+    - 4-9
+
+- flow_control  1_byte
+
+    - 0 - None
+    - 1 - Hardware
+    - 2 - XON/OFF
+"""
 
     def __init__(self):
         super(RS232NetworkInfo, self).__init__(network_id=self.NET_ID_RS232)

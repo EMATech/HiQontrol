@@ -481,6 +481,8 @@ class Command(object):
 
         :param device: The HiQnet device sending the discovery command
         :type device: Device
+        :param disco_type: Discovery type message. I(nfo) or Q(uery)
+        :type disco_type: str
         """
         if disco_type == 'I':
             self.flags.info = 1
@@ -543,7 +545,11 @@ class Command(object):
         raise NotImplementedError
 
     def get_vd_list(self, workgroup=''):
-        """Build a Get VD List command."""
+        """Build a Get VD List command.
+
+        :param workgroup: The workgroup to get the VD list from.
+        :type workgroup: str
+        """
         self.message = Message(name='GETVDLIST')
         self.payload = workgroup
         # raise NotImplementedError

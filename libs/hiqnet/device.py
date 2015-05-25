@@ -2,15 +2,18 @@
 """HiQnet device architecture.
 
 Node (Device)
-  \- At least one virtual device (The first is the device manager)
-  \- Parameters and/or objects
-                        \- Objects contains parameters and/or other objects
+-------------
+- At least one virtual device (The first is the device manager)
+- Parameters and/or objects
+- Objects contains parameters and/or other objects
 
 Attributes everywhere
-    Either STATIC, Instance or Instance+Dynamic
+---------------------
+Either STATIC, Instance or Instance+Dynamic
 
 Virtual devices, objects and parameters
-    Have a Class Name and a Class ID
+---------------------------------------
+Have a Class Name and a Class ID
 """
 
 from __future__ import print_function
