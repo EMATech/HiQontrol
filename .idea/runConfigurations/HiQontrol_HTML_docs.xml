@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="hiqontrol docs" type="docs" factoryName="Sphinx task">
+  <configuration default="false" name="HiQontrol HTML docs" type="docs" factoryName="Sphinx task">
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs />
@@ -10,7 +10,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <module name="hiqontrol" />
     <option name="docutils_input_file" value="$PROJECT_DIR$/docs" />
-    <option name="docutils_output_file" value="$PROJECT_DIR$/docs/_build" />
+    <option name="docutils_output_file" value="$PROJECT_DIR$/docs/_build/html" />
     <option name="docutils_params" value="" />
     <option name="docutils_task" value="html" />
     <option name="docutils_open_in_browser" value="false" />

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Harman HiQnet library."""
 
 __author__ = 'Raphaël Doursenaud'
 

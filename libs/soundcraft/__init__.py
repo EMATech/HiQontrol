@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Soundcraft meters library."""
 
 __author__ = 'Raphaël Doursenaud'
 
