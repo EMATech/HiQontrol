@@ -25,6 +25,20 @@ from networkinfo import *
 from protocol import FullyQualifiedAddress
 import random
 
+def negotiate_address():
+    """Generates a random HiQnet address to datastore and reuse on the device.
+
+    The address is automatically checked on the network.
+    """
+    requested_address = random.randrange(1, 65534)
+    # connection = Connection()
+    # message = Command(source=FullyQualifiedAddress(device_address=0),
+    #                          destination=FullyQualifiedAddress.broadcast_address())
+    # message.request_address(self, requested_address)
+    # connection.sendto('<broadcast>')
+    # FIXME: look for address_used reply messages and renegotiate if found
+    return requested_address
+
 
 class Attribute(object):
     """Member variables of the HiQnet architecture.
@@ -135,7 +149,7 @@ class Device(object):
     manager = None
     virtual_devices = None
 
-    def __init__(self, name, hiqnet_address, network_info=IPNetworkInfo.autodetect()):
+    def __init__(self, name, hiqnet_address=negotiate_address(), network_info=IPNetworkInfo.autodetect()):
         """Build a device.
 
         :param name: Name of the device
@@ -152,32 +166,33 @@ class Device(object):
     def set_hiqnet_address(self, address):
         """Set the device HiQnet address.
 
-        :param address:
+        :param address: The device HiQnet address
         :type address: int
         """
         if 1 > address > 65534:
             raise ValueError
         self._hiqnet_address = address
 
-    @staticmethod
-    def negotiate_address():
-        """Generates a random HiQnet address to datastore and reuse on the device.
+    def get_hiqnet_address(self):
+        """ Get the device HiQnet address
 
-        The address is automatically checked on the network.
+        :return: The device HiQnet address
+        :rtype: int
         """
-        requested_address = random.randrange(1, 65534)
-        # connection = Connection()
-        # message = Command(source=FullyQualifiedAddress(device_address=0),
-        #                          destination=FullyQualifiedAddress.broadcast_address())
-        # message.request_address(self, requested_address)
-        # connection.sendto('<broadcast>')
-        # FIXME: look for address_used reply messages and renegotiate if found
-        return requested_address
+        return self._hiqnet_address
 
     def get_address(self):
         """Get the device manager address
 
-        :return: The address of the device manager
+        :return: The fully qualified address of the device manager
         :rtype: FullyQualifiedAddress
         """
         return FullyQualifiedAddress(device_address=self._hiqnet_address)
+
+    def get_name(self):
+        """Get the device name
+
+        :return: The device name
+        :rtype: str
+        """
+        return self.manager.name_string

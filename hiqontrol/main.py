@@ -128,10 +128,9 @@ class HiQontrolApp(App):
     except KeyError:
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
         device_name = APPNAME
-        device_address = hiqnet.device.Device.negotiate_address()
-        device = hiqnet.device.Device(device_name, device_address)
-        datastore.put('device_name', value=device_name)
-        datastore.put('device_address', value=device_address)
+        device = hiqnet.device.Device(device_name)
+        datastore.put('device_name', value=device.get_name())
+        datastore.put('device_address', value=device.get_hiqnet_address())
     control = None
     screen = None
     udp_transport = None
