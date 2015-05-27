@@ -25,8 +25,9 @@ from networkinfo import *
 from protocol import FullyQualifiedAddress
 import random
 
+
 def negotiate_address():
-    """Generates a random HiQnet address to datastore and reuse on the device.
+    """Generates a random HiQnet address.
 
     The address is automatically checked on the network.
     """
