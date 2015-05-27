@@ -8,7 +8,7 @@ __author__ = 'Raphaël Doursenaud'
 import binascii
 from twisted.internet import protocol
 
-from protocol import Command
+from ..protocol import Command
 
 PORT = 3804  # IANA declared as IQnet. Go figure.
 
