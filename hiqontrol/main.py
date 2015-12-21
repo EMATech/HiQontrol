@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""HiQontrol: an attempt at building a free, open source, multi-platform ViSi Remote alternative."""
+"""HiQontrol: an attempt at building a free, open source, multi–platform ViSi Remote alternative."""
 
 __author__ = 'Raphaël Doursenaud'
 

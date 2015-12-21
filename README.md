@@ -1,7 +1,7 @@
 HiQontrol
 =========
 
-Soundraft Si Compact 16 Harman HiQnet Controller
+An attempt at building a free, open source, multi-platform ViSi Remote alternative
 
 Status
 ======
@@ -36,7 +36,7 @@ Dependencies
 
 License
 =======
-Copyright (C) 2014-2015 Raphaël Doursenaud <rdoursenaud@free.fr>
+Copyright (C) 2014–2015 Raphaël Doursenaud <rdoursenaud@free.fr>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
