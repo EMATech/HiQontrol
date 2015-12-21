@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/libs/hiqnet/hiqnet.iml" filepath="$PROJECT_DIR$/libs/hiqnet/hiqnet.iml" />
       <module fileurl="file://$PROJECT_DIR$/hiqontrol.iml" filepath="$PROJECT_DIR$/hiqontrol.iml" />
-      <module fileurl="file://$PROJECT_DIR$/libs/soundcraft/soundcraft.iml" filepath="$PROJECT_DIR$/libs/soundcraft/soundcraft.iml" />
     </modules>
   </component>
 </project>
