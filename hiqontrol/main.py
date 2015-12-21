@@ -6,6 +6,11 @@ __author__ = 'Raphaël Doursenaud'
 import re
 import binascii
 
+from os import environ
+
+if environ.get('ANDROID_APP_PATH'):
+    environ['PYTHON_EGG_CACHE'] = environ.get('ANDROID_APP_PATH')
+
 from kivy.app import App
 
 from kivy.logger import Logger
@@ -26,7 +31,7 @@ if __name__ == '__main__':
     from twisted.internet import reactor
 
 # FIXME: this should not be hardcoded but autodetected
-SI_COMPACT_16_IP = '192.168.1.5'
+SI_COMPACT_16_IP = '192.168.1.20'
 SI_COMPACT_16_DEVICE_ADDRESS = 1619
 SI_COMPACT_16_SERIAL = b'\x53\x69\x43\x6f\x6d\x70\x61\x63\x74\x00\x00\x00\x00\x00\x00\x00'  # SiCompact
 

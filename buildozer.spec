@@ -56,28 +56,31 @@ fullscreen = 1
 #
 
 # (list) Permissions
-android.permissions = INTERNET
+android.permissions = INTERNET,WAKE_LOCK
 
 # (int) Android API to use
-#android.api = 19
+# 19 = 4.4.2
+# 22 = 5.1.1
+# 23 = 6.0
+android.api = 21
 
 # (int) Minimum API required (8 = Android 2.2 devices)
 #android.minapi = 8
 
 # (int) Android SDK version to use
-#android.sdk = 21
+android.sdk = 24
 
 # (str) Android NDK version to use
-#android.ndk = r10c
+android.ndk = 10e
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = False
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path = /opt/android-ndk
+android.ndk_path = /opt/android-ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-#android.sdk_path = /opt/android-sdk
+android.sdk_path = /opt/android-sdk
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #android.p4a_dir =
@@ -120,7 +123,7 @@ android.permissions = INTERNET
 
 # (bool) Indicate whether the screen should stay on
 # Don't forget to add the WAKE_LOCK permission if you set this to True
-#android.wakelock = False
+android.wakelock = True
 
 # (list) Android application meta-data to set (key=value format)
 #android.meta_data =
@@ -144,7 +147,7 @@ android.permissions = INTERNET
 [buildozer]
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
-log_level = 2
+log_level = 0
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1
