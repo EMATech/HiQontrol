@@ -26,6 +26,8 @@ from kivy.support import install_twisted_reactor
 import hiqnet
 import soundcraft
 
+on_rtd = environ.get('READTHEDOCS') == 'True'
+
 if __name__ == '__main__':
     install_twisted_reactor()
     from twisted.internet import reactor
@@ -136,6 +138,9 @@ class HiQontrolApp(App):
         device = hiqnet.device.Device(device_name)
         datastore.put('device_name', value=device.get_name())
         datastore.put('device_address', value=device.get_hiqnet_address())
+    except TypeError:
+        if on_rtd:
+            pass
     control = None
     screen = None
     udp_transport = None

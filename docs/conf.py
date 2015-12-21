@@ -16,13 +16,26 @@
 import sys
 import os
 import sphinx_rtd_theme
+from mock import Mock as MagicMock
+
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+
+
+class Mock(MagicMock):
+    """
+    Mock missing to allow building on RTD
+    """
+    @classmethod
+    def __getattr__(cls, *args):
+        return Mock()
+
+MOCK_MODULES = ['kivy', 'kivy.app', 'kivy.logger', 'kivy.storage', 'kivy.storage.jsonstore', 'kivy.adapters', 'kivy.adapters.dictadapter', 'kivy.properties', 'kivy.clock', 'kivy.uix', 'kivy.uix.screenmanager', 'kivy.uix.textinput', 'kivy.uix.listview', 'kivy.support']
+if on_rtd:
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../libs'))
-sys.path.insert(0, os.path.abspath('../libs/hiqnet'))
-sys.path.insert(0, os.path.abspath('../libs/soundcraft'))
 sys.path.insert(0, os.path.abspath('../hiqontrol'))
 
 # -- General configuration ------------------------------------------------
