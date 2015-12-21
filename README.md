@@ -8,13 +8,31 @@ Status
 
 Work In Progress, [Proof of Concept](https://github.com/EMATech/HiQontrol/releases/tag/v0.0.1) available for Android
 
+TODO
+====
+
+- Autodetect compatible HiQnet devices on the network and list them properly (Disco)
+- VU-Meter messages parsing and page
+- Graphic EQs
+- Volumes
+- Channel properties
+    - Gain
+    - Gate
+    - Comp
+    - EQ
+    - Pan
+- Sends
+    - Bus
+    - Mtx
+    - FX
+
 Dependencies
 ============
 
-- Python 2 or 3
+- Python 2 (Python 3 Kivy does not support Twisted ATM)
 - [Kivy](kivy.org)
-- netifaces
-- twisted
+- Netifaces
+- Twisted
 
 License
 =======
