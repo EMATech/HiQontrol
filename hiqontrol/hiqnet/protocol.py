@@ -182,8 +182,8 @@ class FullyQualifiedAddress(object):
 
     def __repr__(self):
         return str(self.device_address) + '.' + \
-            "%d" % struct.unpack('!B', self.vd_address) + \
-            '.' + "%d.%d.%d" % struct.unpack('!BBB', self.object_address)
+            "{0:d}".format(struct.unpack('!B', self.vd_address)) + \
+            '.' + "{0:d}.{1:d}.{2:d}".format(*struct.unpack('!BBB', self.object_address))
 
 
 class Command(object):
@@ -415,22 +415,22 @@ class Command(object):
         if network_id == NetworkInfo.NET_ID_TCP_IP:
             # TCP/IP
             size = 6
-            mac_address = "%02x:%02x:%02x:%02x:%02x:%02x" % struct.unpack("!BBBBBB", self.payload[index:index + size])
+            mac_address = "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}".format(*struct.unpack("!BBBBBB", self.payload[index:index + size]))
             index += size
 
             dhcp = bool(struct.unpack("B", self.payload[index])[0])
             index += 1
 
             size = 4
-            ip_address = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            ip_address = "{0:d}.{1:d}.{2:d}.{3:d}".format(*struct.unpack('!BBBB', self.payload[index:index + size]))
             index += size
 
             size = 4
-            subnet_mask = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            subnet_mask = "{0:d}.{1:d}.{2:d}.{3:d}".format(*struct.unpack('!BBBB', self.payload[index:index + size]))
             index += size
 
             size = 4
-            gateway_address = "%d.%d.%d.%d" % struct.unpack('!BBBB', self.payload[index:index + size])
+            gateway_address = "{0:d}.{1:d}.{2:d}.{3:d}".format(*struct.unpack('!BBBB', self.payload[index:index + size]))
             index += size
 
             network_info = IPNetworkInfo(mac_address=mac_address, dhcp=dhcp,
