@@ -105,7 +105,7 @@ class Control(object):
 
     def init(self, hiqnet_dest):
         c = hiqnet.service.ip.Connection(self.udp_transport, self.tcp_transport)
-        source_address = self.source_device.get_address()
+        source_address = self.source_device.address
         destination_address = hiqnet.protocol.FullyQualifiedAddress(device_address=hiqnet_dest)
         message = hiqnet.protocol.Command(source=source_address, destination=destination_address)
         return c, message
@@ -136,8 +136,8 @@ class HiQontrolApp(App):
         Logger.warning(APPNAME + ': Settings not found, will use sane defaults')
         device_name = APPNAME
         device = hiqnet.device.Device(device_name)
-        datastore.put('device_name', value=device.get_name())
-        datastore.put('device_address', value=device.get_hiqnet_address())
+        datastore.put('device_name', value=device.name)
+        datastore.put('device_address', value=device.hiqnet_address)
     except TypeError:
         if on_rtd:
             pass

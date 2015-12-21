@@ -191,7 +191,7 @@ class Command(object):
     # Placeholder, will be filled later
     header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
-    version = PROTOCOL_VERSION  # 1 byte
+    _version = PROTOCOL_VERSION  # 1 byte
     """
     The Version Number indicates the revision number of the entire protocol; it is not
     used for differentiating between revisions of individual commands. HiQnet is
@@ -201,14 +201,14 @@ class Command(object):
 
     :type: int
     """
-    headerlen = MIN_HEADER_LEN  # 1 byte
+    _headerlen = MIN_HEADER_LEN  # 1 byte
     """
     The Header Length is the size in bytes of the entire command header, including any
     additional headers such as 'Error' or 'Multi-part'.
 
     :type: int
     """
-    commandlen = 0  # 4 bytes
+    _commandlen = 0  # 4 bytes
     """
     The command length is the size in bytes of the entire command - from the
     ‘Version’ field through to the last byte of the payload.
@@ -315,11 +315,11 @@ class Command(object):
         print("Real command length: ", len(command))
         if len(command) < MIN_HEADER_LEN:
             raise BufferError("Command too short")
-        self.set_version(struct.unpack('!B', command[0])[0])
-        self.set_headerlen(struct.unpack('!B', command[1])[0])
+        self.version = struct.unpack('!B', command[0])[0]
+        self.headerlen = struct.unpack('!B', command[1])[0]
         if len(command) < self.headerlen:
             raise BufferError("Command is smaller than it's header length")
-        self.set_commandlen(struct.unpack('!L', command[2:6])[0])
+        self.commandlen = struct.unpack('!L', command[2:6])[0]
         if len(command) != self.commandlen:
             raise BufferError("Command length header and actual length missmatch")
         self.source_address = FullyQualifiedAddress(devicevdobject=command[6:12])
@@ -446,7 +446,12 @@ class Command(object):
         else:
             raise NotImplementedError
 
-    def set_version(self, version):
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, version):
         """Set the version.
 
         :param version: Version number.
@@ -454,9 +459,14 @@ class Command(object):
         """
         if not PROTOCOL_MIN_VERSION <= version <= PROTOCOL_MAX_VERSION:
             raise ValueError("This HiQnet version is unknown.")
-        self.version = version
+        self._version = version
 
-    def set_headerlen(self, headerlen):
+    @property
+    def headerlen(self):
+        return self._headerlen
+
+    @headerlen.setter
+    def headerlen(self, headerlen):
         """Set the header length.
 
         :param headerlen: Header length
@@ -464,9 +474,14 @@ class Command(object):
         """
         if headerlen < MIN_HEADER_LEN:
             raise ValueError("The header can't be smaller than " + str(MIN_HEADER_LEN))
-        self.headerlen = headerlen
+        self._headerlen = headerlen
 
-    def set_commandlen(self, commandlen):
+    @property
+    def commandlen(self):
+        return self._commandlen
+
+    @commandlen.setter
+    def commandlen(self, commandlen):
         """ Set the command length
 
         :param commandlen: Command lenght
@@ -474,7 +489,7 @@ class Command(object):
         """
         if commandlen < self.headerlen or commandlen < MIN_HEADER_LEN:
             raise ValueError("Command can't be smaller than the header")
-        self.commandlen = commandlen
+        self._commandlen = commandlen
 
     def disco_info(self, device, disco_type='Q'):
         """Build a Discovery Information command.

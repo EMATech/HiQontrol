@@ -161,10 +161,20 @@ class Device(object):
         :type network_info: NetworkInfo
         """
         self.manager = DeviceManager(name)
-        self.set_hiqnet_address(hiqnet_address)
+        self.hiqnet_address = hiqnet_address
         self.network_info = network_info
 
-    def set_hiqnet_address(self, address):
+    @property
+    def hiqnet_address(self):
+        """ Get the device HiQnet address
+
+        :return: The device HiQnet address
+        :rtype: int
+        """
+        return self._hiqnet_address
+
+    @hiqnet_address.setter
+    def hiqnet_address(self, address):
         """Set the device HiQnet address.
 
         :param address: The device HiQnet address
@@ -174,15 +184,8 @@ class Device(object):
             raise ValueError
         self._hiqnet_address = address
 
-    def get_hiqnet_address(self):
-        """ Get the device HiQnet address
-
-        :return: The device HiQnet address
-        :rtype: int
-        """
-        return self._hiqnet_address
-
-    def get_address(self):
+    @property
+    def address(self):
         """Get the device manager address
 
         :return: The fully qualified address of the device manager
@@ -190,7 +193,8 @@ class Device(object):
         """
         return FullyQualifiedAddress(device_address=self._hiqnet_address)
 
-    def get_name(self):
+    @property
+    def name(self):
         """Get the device name
 
         :return: The device name
