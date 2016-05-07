@@ -100,15 +100,24 @@ class IPNetworkInfo(NetworkInfo):
     def autodetect(cls):
         """Get infos from the interface.
 
-        We assume that interface to the default gateway is the one we want.
+        We assume that interface to the default gateway is the one we want
+        and fallback to the second interface since the first is usually "lo".
 
         :type cls: NetworkInfo
         :rtype: NetworkInfo
         """
-        # FIXME: this may fail
-        iface = netifaces.gateways()['default'][netifaces.AF_INET][1]
+        try:
+            iface = netifaces.gateways().get('default').get(netifaces.AF_INET)[1]
+        except TypeError:
+            # Fallback to the second interface
+            iface = netifaces.interfaces().pop(1)
         addrs = netifaces.ifaddresses(iface)
-        mac_address = addrs[netifaces.AF_LINK][0]['addr']
+        mac_addrs = addrs.get(netifaces.AF_LINK)
+        try:
+            mac_address = mac_addrs.pop().get('addr')
+        except (AttributeError, IndexError):
+            # Can't get MAC address (Android or netifaces bug?)
+            mac_address = '00:00:00:00:00:00'
         try:
             mac_address.decode('ascii')
         except UnicodeDecodeError:
@@ -122,9 +131,14 @@ class IPNetworkInfo(NetworkInfo):
             except UnicodeDecodeError:
                 # We got Garbage (Android bug?), let's default to something sane
                 mac_address = '00:00:00:00:00:00'
-        ip_address = addrs[netifaces.AF_INET][0]['addr']
-        subnet_mask = addrs[netifaces.AF_INET][0]['netmask']
-        gateway_address = netifaces.gateways()['default'][netifaces.AF_INET][0]
+        first_ip_addrs = addrs.get(netifaces.AF_INET).pop()
+        ip_address = first_ip_addrs.get('addr')
+        subnet_mask = first_ip_addrs.get('netmask')
+        try:
+            gateway_address = netifaces.gateways().get(netifaces.AF_INET).pop()[0]
+        except IndexError:
+            # Android: Can't get gateway address (Android or netifaces bug?)
+            gateway_address = '0.0.0.0'
         # Seems impossible to know. Let's say it is.
         dhcp = True
         # noinspection PyCallingNonCallable
